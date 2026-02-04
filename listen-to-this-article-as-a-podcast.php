@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name:       Listen to This Article as a Podcast
- * Plugin URI:        https://himoose.com/podcast-generator
+ * Plugin URI:        https://himoose.com/listen-to-this-article
  * Description:       Turn your articles into podcast-style audio using natural AI narration, and add a clean embedded player to your posts. Great for “listen to this article,” accessibility, and SEO/AEO.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Author:            Hi, Moose
  * Author URI:        https://himoose.com
  * License:           GPL-2.0-or-later
@@ -18,10 +18,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define Constants.
-define( 'HIMOOSE_VERSION', '1.0.0' );
+define( 'HIMOOSE_VERSION', '1.1.0' );
 define( 'HIMOOSE_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'HIMOOSE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'HIMOOSE_API_BASE', 'https://wp-api.himoose.com/v1' );
+
+// Allow clean environment overrides from wp-config.php.
+// Define these in wp-config.php for development/testing:
+// - HIMOOSE_API_BASE (no trailing slash)
+// - HIMOOSE_APP_BASE (no trailing slash)
+if ( ! defined( 'HIMOOSE_API_BASE' ) ) {
+	define( 'HIMOOSE_API_BASE', 'https://wp-api.himoose.com/v1' );
+}
+
+if ( ! defined( 'HIMOOSE_APP_BASE' ) ) {
+	define( 'HIMOOSE_APP_BASE', 'https://app.himoose.com' );
+}
 
 // Include Helper Functions.
 require_once HIMOOSE_PLUGIN_DIR . 'includes/helpers.php';

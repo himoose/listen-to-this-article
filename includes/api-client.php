@@ -26,7 +26,7 @@ function himoose_remote_get_podcasts() {
 
 	$url = add_query_arg(
 		array( 'domain' => $domain ),
-		HIMOOSE_API_BASE . '/getWordPressPodcasts'
+		himoose_get_api_base() . '/getWordPressPodcasts'
 	);
 
 	$args = array(
@@ -106,7 +106,7 @@ function himoose_remote_get_embed( $job_id ) {
 			'jobId'  => $job_id,
 			'domain' => $domain,
 		),
-		HIMOOSE_API_BASE . '/getWordPressEmbed'
+		himoose_get_api_base() . '/getWordPressEmbed'
 	);
 
 	$args = array(

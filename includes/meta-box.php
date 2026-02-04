@@ -91,7 +91,7 @@ function himoose_render_meta_box( $post ) {
 			</p>
 
 			<p class="himoose-generate-link">
-				<a href="https://app.himoose.com/podcast-generator" target="_blank">
+				<a href="<?php echo esc_url( himoose_get_app_base() . '/podcast-generator' ); ?>" target="_blank">
 					<?php esc_html_e( 'Generate a new podcast', 'listen-to-this-article' ); ?> &rarr;
 				</a>
 			</p>

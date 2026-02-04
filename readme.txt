@@ -12,7 +12,7 @@ Text to speech audio player for WordPress. Add a “read aloud” or “listen t
 
 == Description ==
 
-**Listen to This Article as a Podcast** is a text to speech audio player plugin for WordPress, powered by the [Hi, Moose text-to-podcast generator](https://himoose.com/podcast-generator). It lets you add a “read aloud” or “listen to this article” audio experience to your posts using natural-sounding AI narration.
+**Listen to This Article as a Podcast** is a text to speech audio player plugin for WordPress, powered by the [Hi, Moose text-to-podcast generator](https://himoose.com/listen-to-this-article). It lets you add a “read aloud” or “listen to this article” audio experience to your posts using natural-sounding AI narration.
 
 = Text to Speech & Read Aloud Audio for WordPress =
 It adds an audio version of your posts—similar to a “listen to this article” or “read aloud” button—but powered by high-quality, natural AI voices.  
@@ -30,7 +30,7 @@ On the Hi, Moose platform, you can customize each podcast-style audio version be
 
 = Useful Links =
 
-* **Live Demo:** https://himoose.com/podcast-generator
+* **Live Demo:** https://himoose.com/listen-to-this-article
 * **Hi, Moose AEO Platform:** https://himoose.com
 * **Support:** https://himoose.com/contact
 
@@ -100,6 +100,11 @@ Yes! Use the shortcode `[himoose_podcast]` anywhere in your post content and thi
 
 
 == Changelog ==
+
+= 1.0.1 =
+*   Generate new audio directly from a post within WordPress admin.
+*   WordPress 6.9.1 support.
+*   Updated demo URL.
 
 = 1.0.0 =
 *   Initial release.

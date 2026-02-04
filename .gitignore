@@ -6,3 +6,5 @@ vendor/
 .idea/
 .vscode/
 *.log
+local.txt
+DEV_SPEC_v1.1.0.md

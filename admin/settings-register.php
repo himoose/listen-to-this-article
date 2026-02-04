@@ -151,7 +151,7 @@ function himoose_field_api_key_callback() {
 	$detected_domain = isset( $parsed_url['host'] ) ? $parsed_url['host'] : '';
 	$domain_value = ! empty( $saved_domain ) ? $saved_domain : $detected_domain;
 	
-	$register_url = 'https://app.himoose.com/register?source=wordpress&domain=' . urlencode( $domain_value );
+	$register_url = himoose_get_app_base() . '/register?source=wordpress&domain=' . urlencode( $domain_value );
 	?>
 	<input type="password" name="himoose_api_key" value="" placeholder="<?php echo esc_attr( $placeholder ); ?>" class="regular-text" />
 	
