@@ -8,9 +8,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Fetch list of podcasts from Hi, Moose API.
+ * Fetch list of audio from Hi, Moose API.
  *
- * @return array|WP_Error Array of podcasts or WP_Error on failure.
+ * @return array|WP_Error Array of audio or WP_Error on failure.
  */
 function himoose_remote_get_podcasts() {
 	$api_key = himoose_get_api_key();
@@ -163,4 +163,168 @@ function himoose_remote_get_embed( $job_id ) {
 
 	// Fallback: if it's not JSON or doesn't have 'html' field, assume body is HTML
 	return $body;
+}
+
+/**
+	* Start a WordPress audio generation job.
+	*
+	* @param array $payload Generation payload.
+	* @return array|WP_Error Response array (expects at least jobId/status) or WP_Error on failure.
+	*/
+function himoose_remote_generate_podcast( $payload ) {
+	$api_key = himoose_get_api_key();
+	$domain  = himoose_get_domain();
+
+	if ( empty( $api_key ) ) {
+		return new WP_Error( 'missing_api_key', __( 'API Key is missing.', 'listen-to-this-article' ) );
+	}
+
+	if ( empty( $domain ) ) {
+		return new WP_Error( 'missing_domain', __( 'Could not detect domain.', 'listen-to-this-article' ) );
+	}
+
+	$url = himoose_get_api_base() . '/generateWordPressPodcast';
+
+	$args = array(
+		'headers' => array(
+			'x-himoose-api-key'    => $api_key,
+			'x-himoose-wp-version' => HIMOOSE_VERSION,
+			'content-type'         => 'application/json; charset=utf-8',
+		),
+		'timeout' => 20,
+		'body'    => wp_json_encode( $payload ),
+	);
+
+	$response = wp_remote_post( $url, $args );
+	if ( is_wp_error( $response ) ) {
+		return $response;
+	}
+
+	$code = wp_remote_retrieve_response_code( $response );
+	$body = wp_remote_retrieve_body( $response );
+	$data = json_decode( $body, true );
+
+	if ( 200 !== $code ) {
+		$error_message = '';
+		$error_data    = array();
+
+		if ( json_last_error() === JSON_ERROR_NONE && is_array( $data ) ) {
+			if ( isset( $data['error']['message'] ) && is_string( $data['error']['message'] ) ) {
+				$error_message = $data['error']['message'];
+			} elseif ( isset( $data['error'] ) && is_string( $data['error'] ) ) {
+				$error_message = $data['error'];
+			} elseif ( isset( $data['message'] ) && is_string( $data['message'] ) ) {
+				$error_message = $data['message'];
+			}
+
+			// Pass through optional structured fields (e.g. upgradeUrl).
+			foreach ( array( 'code', 'upgradeUrl', 'limit' ) as $key ) {
+				if ( isset( $data[ $key ] ) ) {
+					$error_data[ $key ] = $data[ $key ];
+				}
+			}
+		}
+
+		if ( empty( $error_message ) ) {
+			/* translators: %d: HTTP status code */
+			$error_message = sprintf( __( 'HTTP Error %d', 'listen-to-this-article' ), $code );
+		}
+
+		$err = new WP_Error( 'api_error', $error_message );
+		if ( ! empty( $error_data ) ) {
+			$err->add_data( $error_data );
+		}
+		return $err;
+	}
+
+	if ( json_last_error() !== JSON_ERROR_NONE || ! is_array( $data ) ) {
+		return new WP_Error( 'json_error', __( 'Invalid JSON response.', 'listen-to-this-article' ) );
+	}
+
+	return $data;
+}
+
+/**
+	* Get the status of a WordPress podcast generation job.
+	*
+	* @param string $job_id Job ID.
+	* @return array|WP_Error Response array or WP_Error on failure.
+	*/
+function himoose_remote_get_podcast_status( $job_id ) {
+	$api_key = himoose_get_api_key();
+	$domain  = himoose_get_domain();
+
+	if ( empty( $api_key ) ) {
+		return new WP_Error( 'missing_api_key', __( 'API Key is missing.', 'listen-to-this-article' ) );
+	}
+
+	if ( empty( $domain ) ) {
+		return new WP_Error( 'missing_domain', __( 'Could not detect domain.', 'listen-to-this-article' ) );
+	}
+
+	if ( empty( $job_id ) ) {
+		return new WP_Error( 'missing_job_id', __( 'Job ID is missing.', 'listen-to-this-article' ) );
+	}
+
+	$url = add_query_arg(
+		array(
+			'jobId'  => $job_id,
+			'domain' => $domain,
+		),
+		himoose_get_api_base() . '/getWordPressPodcastStatus'
+	);
+
+	$args = array(
+		'headers' => array(
+			'x-himoose-api-key'    => $api_key,
+			'x-himoose-wp-version' => HIMOOSE_VERSION,
+		),
+		'timeout' => 15,
+	);
+
+	$response = wp_remote_get( $url, $args );
+	if ( is_wp_error( $response ) ) {
+		return $response;
+	}
+
+	$code = wp_remote_retrieve_response_code( $response );
+	$body = wp_remote_retrieve_body( $response );
+	$data = json_decode( $body, true );
+
+	if ( 200 !== $code ) {
+		$error_message = '';
+		$error_data    = array();
+
+		if ( json_last_error() === JSON_ERROR_NONE && is_array( $data ) ) {
+			if ( isset( $data['error']['message'] ) && is_string( $data['error']['message'] ) ) {
+				$error_message = $data['error']['message'];
+			} elseif ( isset( $data['error'] ) && is_string( $data['error'] ) ) {
+				$error_message = $data['error'];
+			} elseif ( isset( $data['message'] ) && is_string( $data['message'] ) ) {
+				$error_message = $data['message'];
+			}
+			foreach ( array( 'code', 'upgradeUrl', 'limit' ) as $key ) {
+				if ( isset( $data[ $key ] ) ) {
+					$error_data[ $key ] = $data[ $key ];
+				}
+			}
+		}
+
+		if ( empty( $error_message ) ) {
+			/* translators: %d: HTTP status code */
+			$error_message = sprintf( __( 'HTTP Error %d', 'listen-to-this-article' ), $code );
+		}
+
+		$err = new WP_Error( 'api_error', $error_message );
+		if ( ! empty( $error_data ) ) {
+			$err->add_data( $error_data );
+		}
+		return $err;
+	}
+
+	if ( json_last_error() !== JSON_ERROR_NONE || ! is_array( $data ) ) {
+		return new WP_Error( 'json_error', __( 'Invalid JSON response.', 'listen-to-this-article' ) );
+	}
+
+	return $data;
 }

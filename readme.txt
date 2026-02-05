@@ -101,8 +101,13 @@ Yes! Use the shortcode `[himoose_podcast]` anywhere in your post content and thi
 
 == Changelog ==
 
+= 1.1.0 =
+* Generate new audio directly inside the editor (Classic + Block Editor meta box).
+* Add generation options (voices, length, focus, player colors, custom title) and save defaults for faster repeat use.
+* Support podcast selection and generation on both posts and pages (pages require the shortcode).
+* Show generation status, preview link, and upgrade messaging when limits are reached.
+
 = 1.0.1 =
-*   Generate new audio directly from a post within WordPress admin.
 *   WordPress 6.9.1 support.
 *   Updated demo URL.
 

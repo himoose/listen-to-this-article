@@ -122,7 +122,7 @@ function himoose_sanitize_domain( $input ) {
  * Section callback.
  */
 function himoose_section_developers_callback() {
-	echo '<p>' . esc_html__( 'Connect your site to Hi, Moose to start embedding your articles as podcasts.', 'listen-to-this-article' ) . '</p>';
+	echo '<p>' . esc_html__( 'Connect your site to Hi, Moose to start embedding audio versions of your content.', 'listen-to-this-article' ) . '</p>';
 }
 
 /**
@@ -191,7 +191,7 @@ function himoose_field_domain_callback() {
 	?>
 	<input type="text" name="himoose_domain" value="<?php echo esc_attr( $value ); ?>" class="regular-text" />
 	<p class="description">
-		<?php esc_html_e( 'The domain used to fetch podcasts. You can edit this if your podcasts are hosted on a different domain.', 'listen-to-this-article' ); ?>
+		<?php esc_html_e( 'The domain used to fetch audio. You can edit this if your audio is hosted on a different domain.', 'listen-to-this-article' ); ?>
 	</p>
 	<?php
 }
@@ -204,10 +204,10 @@ function himoose_field_auto_insert_callback() {
 	?>
 	<label>
 		<input type="checkbox" name="himoose_auto_insert" value="1" <?php checked( '1', $auto_insert ); ?> />
-		<?php esc_html_e( 'Automatically insert the podcast player at the top of the post content when it has a podcast. Alternatively, you can override the placement by using the shortcode [himoose_podcast].', 'listen-to-this-article' ); ?>
+		<?php esc_html_e( 'Automatically insert the audio player at the top of post content (posts only) when the post has audio. Pages always require the shortcode [himoose_podcast].', 'listen-to-this-article' ); ?>
 	</label>
 	<p class="description">
-		<?php esc_html_e( 'If unchecked, you must manually insert the shortcode [himoose_podcast] where you want the player to appear.', 'listen-to-this-article' ); ?>
+		<?php esc_html_e( 'If unchecked (or if you are editing a page), manually insert the shortcode [himoose_podcast] where you want the player to appear.', 'listen-to-this-article' ); ?>
 	</p>
 	<?php
 }

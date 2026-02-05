@@ -1,6 +1,340 @@
 /* global himooseAjax */
 ( function( $ ) {
 	$( document ).ready( function() {
+		var pollTimer = null;
+		var pollStartedAt = null;
+		var currentJobId = null;
+		var currentPreviewUrl = null;
+		var sampleAudio = null;
+
+		function clearPoll() {
+			if ( pollTimer ) {
+				window.clearInterval( pollTimer );
+				pollTimer = null;
+			}
+			pollStartedAt = null;
+		}
+
+		function setInlineError( message, upgradeUrl ) {
+			var $err = $( '.himoose-generate-error' );
+			if ( ! $err.length ) {
+				return;
+			}
+
+			var html = '';
+			if ( message ) {
+				html += '<div class="himoose-generate-error-message">' + String( message ) + '</div>';
+			}
+			if ( upgradeUrl ) {
+				html +=
+					'<div class="himoose-upgrade-cta">' +
+					'<a class="button button-primary" target="_blank" rel="noopener noreferrer" href="' +
+					encodeURI( upgradeUrl ) +
+					'">Upgrade</a>' +
+					'</div>';
+			}
+			$err.html( html ).show();
+		}
+
+		function setStatusText( message ) {
+			var $status = $( '.himoose-generate-status' );
+			if ( $status.length ) {
+				$status.text( message || '' ).toggle( !! message );
+			}
+		}
+
+		function setHintText( message ) {
+			var $hint = $( '.himoose-generate-hint' );
+			if ( $hint.length ) {
+				$hint.text( message || '' ).toggle( !! message );
+			}
+		}
+
+		function setPreviewLink( url ) {
+			var $preview = $( '.himoose-preview' );
+			currentPreviewUrl = url || null;
+			if ( ! $preview.length ) {
+				return;
+			}
+			if ( url ) {
+				var safeUrl = encodeURI( url );
+				$preview
+					.html(
+						'<audio controls preload="none" src="' + safeUrl + '" style="width:100%;"></audio>'
+					)
+					.show();
+			} else {
+				$preview.hide().empty();
+			}
+		}
+
+		function collapseGenerationControls() {
+			// Hide the top toggle button and the form fields, but keep status/preview/hint visible.
+			$( '#himoose-start-generate' ).hide();
+			var $fields = $( '#himoose-generate-fields' );
+			if ( $fields.length ) {
+				$fields.show();
+				$fields
+					.children()
+					.not( '.himoose-generate-status, .himoose-preview, .himoose-generate-hint, .himoose-generate-error' )
+					.hide();
+			}
+		}
+
+		function getEditorTitleAndContent() {
+			// Gutenberg (Block Editor): prefer wp.data selectors when available.
+			try {
+				if ( window.wp && wp.data && typeof wp.data.select === 'function' ) {
+					var editor = wp.data.select( 'core/editor' );
+					if ( editor && typeof editor.getEditedPostAttribute === 'function' ) {
+						var title = editor.getEditedPostAttribute( 'title' ) || '';
+						// Use raw content; server will strip tags.
+						var content = editor.getEditedPostAttribute( 'content' ) || '';
+						return { title: title, content: content };
+					}
+				}
+			} catch ( e ) {
+				// ignore
+			}
+
+			// Classic editor fallback
+			var titleClassic = $( '#title' ).val() || '';
+			var contentClassic = '';
+			if ( typeof window.tinyMCE !== 'undefined' && window.tinyMCE.get( 'content' ) && ! window.tinyMCE.get( 'content' ).isHidden() ) {
+				contentClassic = window.tinyMCE.get( 'content' ).getContent() || '';
+			} else {
+				contentClassic = $( '#content' ).val() || '';
+			}
+			return { title: titleClassic, content: contentClassic };
+		}
+
+		function upsertSelectOption( jobId, label ) {
+			var $select = $( '#himoose-podcast-select' );
+			var $container = $( '#himoose-podcast-selector' );
+			if ( ! $select.length ) {
+				return;
+			}
+			$container.show();
+			var existing = $select.find( 'option[value="' + jobId + '"]' );
+			if ( existing.length ) {
+				existing.text( label );
+			} else {
+				$select.append( $( '<option>', { value: jobId, text: label } ) );
+			}
+			$select.val( jobId ).trigger( 'change' );
+		}
+
+		function mapStatusToMessage( status ) {
+			switch ( status ) {
+				case 'pending':
+					return 'Queued…';
+				case 'processing':
+					return 'Processing… (this can take a few minutes)';
+				case 'ready':
+					return 'Ready!';
+				case 'failed':
+					return 'Failed.';
+				default:
+					return 'Working…';
+			}
+		}
+
+		function pollStatus() {
+			if ( ! currentJobId ) {
+				return;
+			}
+			if ( pollStartedAt && ( Date.now() - pollStartedAt ) > ( 15 * 60 * 1000 ) ) {
+				clearPoll();
+				setInlineError( 'Generation is taking longer than expected. Please check again later by loading latest audio.', null );
+				setStatusText( '' );
+				$( '#himoose-generate-submit' ).prop( 'disabled', false ).show();
+				return;
+			}
+
+			$.ajax( {
+				url: himooseAjax.ajaxurl,
+				type: 'POST',
+				data: {
+					action: 'himoose_get_podcast_status',
+					nonce: himooseAjax.nonce,
+					jobId: currentJobId
+				},
+				success: function( response ) {
+					if ( ! response || ! response.success ) {
+						var msg = response && response.data && response.data.message ? response.data.message : 'Error checking status.';
+						setInlineError( msg, response && response.data ? response.data.upgradeUrl : null );
+						return;
+					}
+					var data = response.data || {};
+					var status = data.status || data.rawStatus || '';
+					setStatusText( mapStatusToMessage( status ) );
+					if ( status === 'ready' ) {
+						clearPoll();
+						setStatusText( 'Your audio is ready!' );
+							collapseGenerationControls();
+						if ( data.previewUrl ) {
+							setPreviewLink( data.previewUrl );
+						}
+						if ( data.jobId ) {
+							var label = data.label || ( 'Audio Selected (ID: ' + data.jobId + ')' );
+							upsertSelectOption( data.jobId, label );
+						}
+						setHintText( 'Reminder: click Update/Publish to persist this selection.' );
+					} else if ( status === 'failed' ) {
+						clearPoll();
+						setInlineError( data.error || 'Audio generation failed. Please try again.', null );
+						setStatusText( '' );
+							$( '#himoose-generate-submit' ).prop( 'disabled', false ).show();
+					}
+				}
+			} );
+		}
+
+		// Initialize WP color picker if present.
+		if ( $.fn.wpColorPicker ) {
+			$( '.himoose-color-field' ).wpColorPicker();
+		}
+
+		var $startGenerate = $( '#himoose-start-generate' );
+		var startGenerateDefaultLabel = ( $startGenerate.text() || '' ).trim();
+		var startGenerateCloseLabel = 'Close audio details';
+
+		$( '#himoose-start-generate' ).on( 'click', function( e ) {
+			e.preventDefault();
+			var $fields = $( '#himoose-generate-fields' );
+			var $fetchBtn = $( '#himoose-fetch-podcasts' );
+			var $helperText = $( '#himoose-meta-box-container p.description' );
+
+			var isOpening = ! $fields.is( ':visible' );
+			if ( isOpening ) {
+				$fields.show();
+				$startGenerate.text( startGenerateCloseLabel );
+				$fetchBtn.hide();
+				$helperText.hide();
+			} else {
+				$fields.hide();
+				$startGenerate.text( startGenerateDefaultLabel );
+				// Restore load + helper. If a job is already selected, the button should remain hidden.
+				if ( ! $( '#himoose_job_id' ).val() ) {
+					$fetchBtn.show();
+				}
+				$helperText.show();
+			}
+
+			$( '.himoose-generate-error' ).hide().empty();
+			setHintText( '' );
+		} );
+
+		$( '.himoose-voice-sample' ).on( 'click', function( e ) {
+			e.preventDefault();
+			var $btn = $( this );
+			var source = $btn.data( 'voice-source' );
+			var voice = source === 'guest' ? $( '#himoose-guest-voice' ).val() : $( '#himoose-host-voice' ).val();
+			if ( ! voice ) {
+				return;
+			}
+			var voiceFile = String( voice ).toLowerCase();
+			var url = ( himooseAjax.sampleBaseUrl || '' ) + voiceFile + ( himooseAjax.sampleExt || '.wav' );
+			url += ( url.indexOf( '?' ) === -1 ? '?' : '&' ) + 'dev=1337';
+
+			if ( sampleAudio && ! sampleAudio.paused ) {
+				sampleAudio.pause();
+				sampleAudio.currentTime = 0;
+				$( '.himoose-voice-sample' ).text( 'Play' );
+				// If clicking again while playing, treat as stop.
+				if ( sampleAudio.src === url ) {
+					return;
+				}
+			}
+
+			sampleAudio = new Audio( url );
+			sampleAudio.addEventListener( 'ended', function() {
+				$( '.himoose-voice-sample' ).text( 'Play' );
+			} );
+			$( '.himoose-voice-sample' ).text( 'Play' );
+			$btn.text( 'Stop' );
+			sampleAudio.play().catch( function() {
+				$btn.text( 'Play' );
+			} );
+		} );
+
+		$( '#himoose-generate-submit' ).on( 'click', function( e ) {
+			e.preventDefault();
+			$( '.himoose-generate-error' ).hide().empty();
+			setPreviewLink( null );
+			setHintText( '' );
+
+			var meta = getEditorTitleAndContent();
+			var postId = $( '#himoose-meta-box-container' ).data( 'post-id' );
+			if ( ! postId ) {
+				setInlineError( 'Missing post ID. Please reload and try again.', null );
+				return;
+			}
+
+			var payload = {
+				action: 'himoose_generate_podcast',
+				nonce: himooseAjax.nonce,
+				postId: postId,
+				title: meta.title || '',
+				content: meta.content || '',
+				focus: $( '#himoose-focus' ).val() || '',
+				length: $( '#himoose-audio-length' ).val() || 'SHORT',
+				hostVoiceName: $( '#himoose-host-voice' ).val() || 'Sulafat',
+				guestVoiceName: $( '#himoose-guest-voice' ).val() || 'Fenrir',
+				primaryColor: $( '#himoose-primary-color' ).val() || '#667eea',
+				secondaryColor: $( '#himoose-secondary-color' ).val() || '#764ba2',
+				customTitle: $( '#himoose-custom-title' ).val() || ''
+			};
+
+			$( '#himoose-generate-submit' ).prop( 'disabled', true );
+			$( '#himoose-generate-spinner' ).addClass( 'is-active' ).css( 'display', 'inline-block' );
+			setStatusText( 'Starting generation…' );
+
+			$.ajax( {
+				url: himooseAjax.ajaxurl,
+				type: 'POST',
+				data: payload,
+				success: function( response ) {
+					var $generateBtn = $( '#himoose-generate-submit' );
+					$( '#himoose-generate-spinner' ).removeClass( 'is-active' ).hide();
+
+					if ( ! response || ! response.success ) {
+						var msg = response && response.data && response.data.message ? response.data.message : 'Generation request failed.';
+						setInlineError( msg, response && response.data ? response.data.upgradeUrl : null );
+						setStatusText( '' );
+						$generateBtn.prop( 'disabled', false ).show();
+						return;
+					}
+
+					var data = response.data || {};
+					currentJobId = data.jobId || null;
+					if ( ! currentJobId ) {
+						setInlineError( 'Generation started but no jobId was returned.', null );
+						setStatusText( '' );
+						$generateBtn.prop( 'disabled', false ).show();
+						return;
+					}
+
+					// Job accepted: hide the submit button to prevent duplicate submissions.
+					$generateBtn.prop( 'disabled', true ).hide();
+
+					setStatusText( 'Queued…' );
+					pollStartedAt = Date.now();
+					clearPoll();
+					pollTimer = window.setInterval( pollStatus, 15000 );
+					// Do an immediate poll so the user sees status quickly.
+					pollStatus();
+				},
+				error: function() {
+					$( '#himoose-generate-submit' ).prop( 'disabled', false );
+					$( '#himoose-generate-spinner' ).removeClass( 'is-active' ).hide();
+					setInlineError( 'Network error. Please try again.', null );
+					setStatusText( '' );
+					$( '#himoose-generate-submit' ).show();
+				}
+			} );
+		} );
+
 		$( '#himoose-fetch-podcasts' ).on( 'click', function( e ) {
 			e.preventDefault();
 
@@ -39,7 +373,7 @@
 						$select.empty();
 						$select.append( $( '<option>', {
 							value: '',
-							text: 'Select a podcast...'
+							text: 'Select audio...'
 						} ) );
 
 						var currentJobId = $( '#himoose_job_id' ).val();
@@ -86,7 +420,7 @@
 								$( '#himoose-fetch-podcasts' ).show();
 							}
 						} else {
-							$errorContainer.text( 'No podcasts found for this domain.' ).show();
+							$errorContainer.text( 'No audio was found for this domain,  you should generate some!' ).show();
 						}
 					} else {
 						$errorContainer.text( response.data ).show();

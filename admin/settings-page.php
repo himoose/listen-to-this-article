@@ -12,8 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function himoose_options_page() {
 	add_options_page(
-		'Hi, Moose Podcast Generator',
-		'Hi, Moose Podcast Generator',
+		'Hi, Moose Audio Generator',
+		'Hi, Moose Audio Generator',
 		'manage_options',
 		'himoose-settings',
 		'himoose_options_page_html'

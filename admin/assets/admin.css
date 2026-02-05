@@ -30,6 +30,83 @@
 
 .himoose-generate-link {
 	border-top: 1px solid #ddd;
-	margin-top: 15px;
+	margin-top: 18px;
 	padding-top: 10px;
+}
+
+#himoose-start-generate {
+	width: 100%;
+	margin-bottom: 8px;
+}
+
+#himoose-fetch-podcasts {
+	width: 100%;
+}
+
+#himoose-generate-fields .himoose-field {
+	margin: 10px 0;
+}
+
+/* Gutenberg sidebar can overflow if controls aren't border-box sized. */
+#himoose-generate-fields input,
+#himoose-generate-fields select,
+#himoose-generate-fields textarea {
+	box-sizing: border-box;
+	max-width: 100%;
+	width: 100%;
+	min-width: 0;
+}
+
+.himoose-inline-row {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.himoose-inline-row select {
+	flex: 1 1 auto;
+}
+
+.himoose-inline-row .button {
+	flex: 0 0 auto;
+}
+
+.himoose-generate-status {
+	margin: 8px 0 12px;
+	color: #1d2327;
+}
+
+.himoose-generate-hint {
+	margin: 6px 0 0;
+	color: #50575e;
+}
+
+.himoose-preview {
+	margin: 6px 0 0;
+}
+
+.himoose-preview audio {
+	width: 100%;
+}
+
+#himoose-remove-podcast {
+	display: inline-block;
+	margin-top: 10px;
+}
+
+.himoose-generate-error {
+	margin: 8px 0 0;
+	color: #d63638;
+}
+
+.himoose-generate-error .himoose-upgrade-cta {
+	margin: 10px 0;
+}
+
+.himoose-generate-error .himoose-upgrade-cta .button {
+	margin: 0;
+}
+
+.himoose-color-field {
+	width: 100%;
 }
