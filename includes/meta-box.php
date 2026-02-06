@@ -35,6 +35,9 @@ function himoose_render_meta_box( $post ) {
 	$api_key = himoose_get_api_key();
 	$has_job = ! empty( $job_id );
 	$post_type = get_post_type( $post );
+	$user_id = get_current_user_id();
+	$successful_assignments = $user_id ? (int) get_user_meta( $user_id, 'himoose_successful_assignments_count', true ) : 0;
+	$review_prompt_dismissed = $user_id ? (bool) get_user_meta( $user_id, 'himoose_review_prompt_dismissed', true ) : false;
 
 	$defaults = get_option( 'himoose_generation_defaults', array() );
 	$default_host_voice = isset( $defaults['hostVoiceName'] ) && is_string( $defaults['hostVoiceName'] ) && $defaults['hostVoiceName'] ? $defaults['hostVoiceName'] : 'Sulafat';
@@ -79,8 +82,8 @@ function himoose_render_meta_box( $post ) {
 	);
 
 	$lengths = array(
-		array( 'value' => 'SHORT', 'label' => 'Short (4-5 minutes)', 'description' => 'Quick overview' ),
-		array( 'value' => 'STANDARD', 'label' => 'Standard (≈10 minutes)', 'description' => 'Comprehensive coverage' ),
+		array( 'value' => 'SHORT', 'label' => 'Standard (4-5 minutes)', 'description' => 'Quick overview' ),
+		array( 'value' => 'STANDARD', 'label' => 'Longer (≈10 minutes)', 'description' => 'Comprehensive coverage' ),
 	);
 	
 	?>
@@ -105,9 +108,37 @@ function himoose_render_meta_box( $post ) {
 			</select>
 		</div>
 
+		<?php if ( $has_job && 'page' === $post_type ) : ?>
+			<p class="description himoose-shortcode-reminder">
+				<?php
+				echo wp_kses_post(
+					__( 'To display the audio player on this page, insert the shortcode <code>[himoose_podcast]</code> into the page content.', 'listen-to-this-article' )
+				);
+				?>
+			</p>
+		<?php endif; ?>
+
+		<?php if ( $user_id && ! $review_prompt_dismissed && $successful_assignments >= 2 ) : ?>
+			<div class="himoose-review-prompt" role="note">
+				<p class="himoose-review-prompt-message">
+					<?php
+					echo esc_html__( '⭐⭐⭐⭐⭐ If this plugin is helping you, please consider leaving a 5‑star review. It really helps!', 'listen-to-this-article' );
+					?>
+				</p>
+				<p class="himoose-review-prompt-actions">
+					<a class="button button-secondary" target="_blank" rel="noopener noreferrer" href="https://wordpress.org/support/plugin/listen-to-this-article/reviews/?filter=5">
+						<?php esc_html_e( 'Leave a review', 'listen-to-this-article' ); ?>
+					</a>
+					<button type="button" class="button-link himoose-review-dismiss">
+						<?php esc_html_e( 'Dismiss', 'listen-to-this-article' ); ?>
+					</button>
+				</p>
+			</div>
+		<?php endif; ?>
+
 		<?php if ( empty( $api_key ) ) : ?>
 			<p>
-				<?php esc_html_e( 'Please connect to Hi, Moose to load podcasts.', 'listen-to-this-article' ); ?>
+				<?php esc_html_e( 'Please connect to Hi, Moose to generate audio.', 'listen-to-this-article' ); ?>
 			</p>
 			<p>
 				<a href="<?php echo esc_url( admin_url( 'options-general.php?page=himoose-settings' ) ); ?>" class="button button-primary">
@@ -127,8 +158,16 @@ function himoose_render_meta_box( $post ) {
 				</button>
 
 				<div id="himoose-generate-fields" style="display:none; margin-top: 12px;">
+					<div class="himoose-progress-dialog" style="display:none;" role="status" aria-live="polite">
+						<div class="himoose-progress-dialog-inner">
+							<span class="spinner is-active himoose-progress-dialog-spinner"></span>
+							<span class="himoose-progress-dialog-text">
+								<?php esc_html_e( 'Generating audio…', 'listen-to-this-article' ); ?>
+							</span>
+						</div>
+					</div>
 				<p class="himoose-field">
-					<label for="himoose-custom-title"><strong><?php esc_html_e( 'Player title', 'listen-to-this-article' ); ?></strong></label>
+					<label for="himoose-custom-title"><strong><?php esc_html_e( 'Player title (leave empty to omit)', 'listen-to-this-article' ); ?></strong></label>
 					<input type="text" id="himoose-custom-title" class="widefat" value="<?php echo esc_attr( $default_custom_title ); ?>" />
 				</p>
 
@@ -181,10 +220,15 @@ function himoose_render_meta_box( $post ) {
 				</p>
 
 				<p class="himoose-field">
-					<button type="button" id="himoose-generate-submit" class="button button-primary">
-						<?php esc_html_e( 'Generate Audio', 'listen-to-this-article' ); ?>
-					</button>
-					<span class="spinner" id="himoose-generate-spinner" style="display:none; float:none; margin-left: 5px;"></span>
+					<span class="himoose-generate-actions">
+						<button type="button" id="himoose-generate-submit" class="button button-primary">
+							<?php esc_html_e( 'Generate Audio', 'listen-to-this-article' ); ?>
+						</button>
+						<button type="button" id="himoose-generate-close" class="button button-secondary">
+							<?php esc_html_e( 'Close', 'listen-to-this-article' ); ?>
+						</button>
+						<span class="spinner" id="himoose-generate-spinner" style="display:none; float:none; margin-left: 5px;"></span>
+					</span>
 				</p>
 
 				<p class="himoose-generate-status" style="display:none;"></p>
@@ -197,16 +241,6 @@ function himoose_render_meta_box( $post ) {
 					<?php esc_html_e( 'Load latest audio', 'listen-to-this-article' ); ?>
 				</button>
 			<?php endif; ?>
-
-			<button type="button" id="himoose-remove-podcast" class="button-link button-link-delete" style="<?php echo $has_job ? '' : 'display:none;'; ?>">
-				<?php
-				if ( 'page' === $post_type ) {
-					esc_html_e( 'Remove audio from this page', 'listen-to-this-article' );
-				} else {
-					esc_html_e( 'Remove audio from this post', 'listen-to-this-article' );
-				}
-				?>
-			</button>
 
 			<?php if ( ! $has_job ) : ?>
 				<span class="spinner" id="himoose-spinner" style="display:none; float:none; margin-left: 5px;"></span>
@@ -234,6 +268,18 @@ function himoose_render_meta_box( $post ) {
 					</a>
 				</p>
 			<?php endif; ?>
+
+			<div id="himoose-remove-section" class="himoose-remove-section" style="<?php echo $has_job ? '' : 'display:none;'; ?>">
+				<button type="button" id="himoose-remove-podcast" class="button-link button-link-delete">
+					<?php
+					if ( 'page' === $post_type ) {
+						esc_html_e( 'Remove audio from this page', 'listen-to-this-article' );
+					} else {
+						esc_html_e( 'Remove audio from this post', 'listen-to-this-article' );
+					}
+					?>
+				</button>
+			</div>
 		<?php endif; ?>
 	</div>
 	<?php
@@ -283,6 +329,7 @@ function himoose_save_meta_box_data( $post_id ) {
 	// Check if we need to fetch new embed data.
 	$existing_embed = get_post_meta( $post_id, '_himoose_embed_html', true );
 	$needs_fetch    = ( $new_job_id !== $old_job_id || empty( $existing_embed ) );
+	$did_update     = false;
 
 	if ( $needs_fetch ) {
 		$embed_html = himoose_remote_get_embed( $new_job_id );
@@ -291,6 +338,7 @@ function himoose_save_meta_box_data( $post_id ) {
 			// Success! Update ID, Embed, and Label.
 			update_post_meta( $post_id, '_himoose_job_id', $new_job_id );
 			update_post_meta( $post_id, '_himoose_embed_html', $embed_html );
+			$did_update = true;
 
 			if ( isset( $_POST['himoose_podcast_label'] ) ) {
 				update_post_meta( $post_id, '_himoose_podcast_label', sanitize_text_field( wp_unslash( $_POST['himoose_podcast_label'] ) ) );
@@ -303,12 +351,42 @@ function himoose_save_meta_box_data( $post_id ) {
 		// No fetch needed (ID hasn't changed and we have embed).
 		// Just ensure ID and Label are up to date (e.g. if label text changed in UI).
 		update_post_meta( $post_id, '_himoose_job_id', $new_job_id );
+		$did_update = true;
 		if ( isset( $_POST['himoose_podcast_label'] ) ) {
 			update_post_meta( $post_id, '_himoose_podcast_label', sanitize_text_field( wp_unslash( $_POST['himoose_podcast_label'] ) ) );
 		}
 	}
+
+	// Count a "successful add" the first time a post/page gets an audio selection saved.
+	if ( $did_update && empty( $old_job_id ) && ! empty( $new_job_id ) ) {
+		$user_id = get_current_user_id();
+		if ( $user_id ) {
+			$count = (int) get_user_meta( $user_id, 'himoose_successful_assignments_count', true );
+			update_user_meta( $user_id, 'himoose_successful_assignments_count', $count + 1 );
+		}
+	}
 }
 add_action( 'save_post', 'himoose_save_meta_box_data' );
+
+/**
+ * AJAX: Dismiss the review prompt for the current user.
+ */
+function himoose_ajax_dismiss_review_prompt() {
+	check_ajax_referer( 'himoose_ajax_nonce', 'nonce' );
+
+	if ( ! current_user_can( 'edit_posts' ) ) {
+		wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'listen-to-this-article' ) ) );
+	}
+
+	$user_id = get_current_user_id();
+	if ( ! $user_id ) {
+		wp_send_json_error( array( 'message' => __( 'Missing user.', 'listen-to-this-article' ) ) );
+	}
+
+	update_user_meta( $user_id, 'himoose_review_prompt_dismissed', 1 );
+	wp_send_json_success( array( 'dismissed' => true ) );
+}
+add_action( 'wp_ajax_himoose_dismiss_review_prompt', 'himoose_ajax_dismiss_review_prompt' );
 
 /**
  * Enqueue Admin Scripts.

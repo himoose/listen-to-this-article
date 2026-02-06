@@ -28,8 +28,30 @@
 	margin-top: 10px;
 }
 
+.himoose-shortcode-reminder {
+	margin: 10px 0 0;
+}
+
+.himoose-review-prompt {
+	margin: 10px 0 0;
+	padding: 10px;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+}
+
+.himoose-review-prompt-message {
+	margin: 0 0 8px;
+}
+
+.himoose-review-prompt-actions {
+	margin: 0;
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
 .himoose-generate-link {
-	border-top: 1px solid #ddd;
 	margin-top: 18px;
 	padding-top: 10px;
 }
@@ -45,6 +67,57 @@
 
 #himoose-generate-fields .himoose-field {
 	margin: 10px 0;
+}
+
+#himoose-generate-fields {
+	position: relative;
+}
+
+.himoose-progress-dialog {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba( 255, 255, 255, 0.88 );
+	z-index: 20;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.himoose-progress-dialog-inner {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	box-shadow: 0 2px 12px rgba( 0, 0, 0, 0.08 );
+	border-radius: 6px;
+	padding: 12px 14px;
+	max-width: 100%;
+	width: 100%;
+}
+
+.himoose-progress-dialog-spinner {
+	float: none;
+	margin: 0 8px 0 0;
+}
+
+.himoose-progress-dialog-text {
+	vertical-align: middle;
+	color: #1d2327;
+}
+
+.himoose-generate-actions {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.himoose-generate-actions #himoose-generate-submit {
+	flex: 1 1 auto;
+}
+
+.himoose-generate-actions #himoose-generate-close {
+	flex: 0 0 auto;
 }
 
 /* Gutenberg sidebar can overflow if controls aren't border-box sized. */
@@ -91,7 +164,22 @@
 
 #himoose-remove-podcast {
 	display: inline-block;
-	margin-top: 10px;
+	margin-top: 0;
+}
+
+.himoose-remove-section {
+	border-top: 1px solid #ddd;
+	margin-top: 14px;
+	padding-top: 10px;
+}
+
+/* Gutenberg renders button-link with an underline; remove it for cleaner UI. */
+#himoose-remove-podcast.button-link,
+#himoose-remove-podcast.button-link:hover,
+#himoose-remove-podcast.button-link:focus,
+#himoose-remove-podcast.button-link:active {
+	text-decoration: none;
+	box-shadow: none;
 }
 
 .himoose-generate-error {

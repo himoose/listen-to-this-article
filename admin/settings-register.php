@@ -11,6 +11,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Initialize settings.
  */
 function himoose_settings_init() {
+	$user_id = get_current_user_id();
+	$successful_assignments = $user_id ? (int) get_user_meta( $user_id, 'himoose_successful_assignments_count', true ) : 0;
+	$review_prompt_dismissed = $user_id ? (bool) get_user_meta( $user_id, 'himoose_review_prompt_dismissed', true ) : false;
+
 	register_setting(
 		'himoose_options_group',
 		'himoose_api_key',
@@ -65,6 +69,24 @@ function himoose_settings_init() {
 		'himoose-settings',
 		'himoose_section_developers'
 	);
+
+	// Gentle review ask once the user has had success a couple of times.
+	if ( $user_id && $successful_assignments >= 2 && ! $review_prompt_dismissed ) {
+		add_settings_section(
+			'himoose_section_review',
+			__( 'Support This Plugin 👋🫎', 'listen-to-this-article' ),
+			'himoose_section_review_callback',
+			'himoose-settings'
+		);
+
+		add_settings_field(
+			'himoose_review_prompt',
+			__( 'Leave a review', 'listen-to-this-article' ),
+			'himoose_field_review_prompt_callback',
+			'himoose-settings',
+			'himoose_section_review'
+		);
+	}
 }
 add_action( 'admin_init', 'himoose_settings_init' );
 
@@ -126,6 +148,30 @@ function himoose_section_developers_callback() {
 }
 
 /**
+ * Review section callback.
+ */
+function himoose_section_review_callback() {
+	echo '<p>' . esc_html__( 'If you’ve found this plugin useful, a review is a huge help for us. We greatly appreciate it.', 'listen-to-this-article' ) . '</p>';
+}
+
+/**
+ * Review prompt field callback.
+ */
+function himoose_field_review_prompt_callback() {
+	$review_url = 'https://wordpress.org/support/plugin/listen-to-this-article/reviews/?filter=5';
+	?>
+	<p style="margin:0 0 8px;">
+		<?php echo esc_html__( '⭐⭐⭐⭐⭐ Please consider leaving a 5-star review; it really helps!', 'listen-to-this-article' ); ?>
+	</p>
+	<p style="margin:0;">
+		<a class="button button-secondary" target="_blank" rel="noopener noreferrer" href="<?php echo esc_url( $review_url ); ?>">
+			<?php esc_html_e( 'Leave a review', 'listen-to-this-article' ); ?>
+		</a>
+	</p>
+	<?php
+}
+
+/**
  * API Key field callback.
  */
 function himoose_field_api_key_callback() {
@@ -158,10 +204,10 @@ function himoose_field_api_key_callback() {
 	<?php if ( empty( $api_key ) ) : ?>
 		<p style="margin-top: 10px;">
 			<a href="<?php echo esc_url( $register_url ); ?>" target="_blank" class="button button-primary">
-				<?php esc_html_e( 'Get Your API Key', 'listen-to-this-article' ); ?>
+				<?php esc_html_e( 'Get Your Free Key to Start Creating Audio', 'listen-to-this-article' ); ?>
 			</a>
 		</p>
-		<p class="description"><?php esc_html_e( 'Click the button above to create your free account and get your key.', 'listen-to-this-article' ); ?></p>
+		<p class="description"><?php esc_html_e( 'It\'s easy! Click the button above to create a free Hi, Moose account and get your key.', 'listen-to-this-article' ); ?></p>
 	<?php else : ?>
 		<p class="description"><?php esc_html_e( 'Your API key is saved securely. To update it, enter a new key above.', 'listen-to-this-article' ); ?></p>
 		<p>
