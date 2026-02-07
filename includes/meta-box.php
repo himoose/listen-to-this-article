@@ -146,8 +146,11 @@ function himoose_render_meta_box( $post ) {
 				</a>
 			</p>
 		<?php else : ?>
-			<?php if ( ! $has_job ) : ?>
-				<button type="button" id="himoose-start-generate" class="button button-primary">
+				<button type="button" id="himoose-fetch-podcasts" class="button button-secondary" style="<?php echo $has_job ? 'display:none;' : ''; ?>">
+					<?php esc_html_e( 'Load available audio', 'listen-to-this-article' ); ?>
+				</button>
+
+				<button type="button" id="himoose-start-generate" class="button button-primary" style="<?php echo $has_job ? 'display:none;' : ''; ?>">
 					<?php
 					if ( 'page' === $post_type ) {
 						esc_html_e( 'Generate audio for this page', 'listen-to-this-article' );
@@ -237,24 +240,18 @@ function himoose_render_meta_box( $post ) {
 				<p class="himoose-generate-error" style="display:none;"></p>
 				</div>
 
-				<button type="button" id="himoose-fetch-podcasts" class="button button-secondary">
-					<?php esc_html_e( 'Load latest audio', 'listen-to-this-article' ); ?>
-				</button>
-			<?php endif; ?>
+				<span class="spinner" id="himoose-spinner" style="<?php echo $has_job ? 'display:none;' : 'display:none;'; ?> float:none; margin-left: 5px;"></span>
 
-			<?php if ( ! $has_job ) : ?>
-				<span class="spinner" id="himoose-spinner" style="display:none; float:none; margin-left: 5px;"></span>
-
-				<p class="himoose-error" style="display:none;"></p>
+				<p class="himoose-error" style="<?php echo $has_job ? 'display:none;' : 'display:none;'; ?>"></p>
 				
-				<p class="description">
+				<p class="description" style="<?php echo $has_job ? 'display:none;' : ''; ?>">
 					<?php 
 					$auto_insert = get_option( 'himoose_auto_insert' );
 					if ( 'page' === $post_type ) {
 						echo wp_kses_post( __( 'Selecting audio saves the player data. <strong>You must insert the shortcode <code>[himoose_podcast]</code> in your content to display it on pages.</strong>', 'listen-to-this-article' ) );
 					} else {
 						if ( '1' === $auto_insert ) {
-							esc_html_e( 'Selecting audio will automatically display the player at the top of this post.', 'listen-to-this-article' );
+							esc_html_e( 'After selecting audio, click Update/Publish to save your changes and show the player at the top of this post.', 'listen-to-this-article' );
 						} else {
 							echo wp_kses_post( __( 'Selecting audio saves the player data. <strong>You must insert the shortcode <code>[himoose_podcast]</code> in your content to display it.</strong>', 'listen-to-this-article' ) );
 						}
@@ -262,12 +259,11 @@ function himoose_render_meta_box( $post ) {
 					?>
 				</p>
 
-				<p class="himoose-generate-link">
+				<p class="himoose-generate-link" style="<?php echo $has_job ? 'display:none;' : ''; ?>">
 					<a href="<?php echo esc_url( himoose_get_app_base() . '/podcast-generator' ); ?>" target="_blank">
 						<?php esc_html_e( 'Use advanced mode instead', 'listen-to-this-article' ); ?>
 					</a>
 				</p>
-			<?php endif; ?>
 
 			<div id="himoose-remove-section" class="himoose-remove-section" style="<?php echo $has_job ? '' : 'display:none;'; ?>">
 				<button type="button" id="himoose-remove-podcast" class="button-link button-link-delete">

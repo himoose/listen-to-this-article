@@ -7,6 +7,16 @@
 		var currentPreviewUrl = null;
 		var sampleAudio = null;
 
+		// Meta box helper text (under the buttons). We'll swap it after a dropdown selection.
+		var $metaBoxHelperText = $( '#himoose-meta-box-container p.description' ).not( '.himoose-shortcode-reminder' );
+		var metaBoxHelperDefaultHtml = $metaBoxHelperText.length ? $metaBoxHelperText.html() : '';
+		var shouldSwapHelperOnSelect =
+			$metaBoxHelperText.length &&
+			window.himooseAjax &&
+			himooseAjax.postType === 'post' &&
+			/top of this post/i.test( $metaBoxHelperText.text() );
+		var metaBoxHelperAfterSelectText = 'Make sure to save your changes.';
+
 		function clearPoll() {
 			if ( pollTimer ) {
 				window.clearInterval( pollTimer );
@@ -238,7 +248,7 @@
 			e.preventDefault();
 			var $fields = $( '#himoose-generate-fields' );
 			var $fetchBtn = $( '#himoose-fetch-podcasts' );
-			var $helperText = $( '#himoose-meta-box-container p.description' );
+			var $helperText = $( '#himoose-meta-box-container p.description' ).not( '.himoose-shortcode-reminder' );
 			$fields.show();
 			$startGenerate.hide().text( startGenerateDefaultLabel );
 			$fetchBtn.hide();
@@ -252,7 +262,7 @@
 			e.preventDefault();
 			var $fields = $( '#himoose-generate-fields' );
 			var $fetchBtn = $( '#himoose-fetch-podcasts' );
-			var $helperText = $( '#himoose-meta-box-container p.description' );
+			var $helperText = $( '#himoose-meta-box-container p.description' ).not( '.himoose-shortcode-reminder' );
 
 			$fields.hide();
 			$startGenerate.show().text( startGenerateDefaultLabel );
@@ -266,6 +276,7 @@
 			if ( ! $( '#himoose_job_id' ).val() ) {
 				$fetchBtn.show();
 				$helperText.show();
+				$( '.himoose-generate-link' ).show();
 			}
 		} );
 
@@ -473,10 +484,12 @@
 								$( '#himoose-remove-section' ).show();
 								$( '#himoose-remove-podcast' ).show();
 								$( '#himoose-fetch-podcasts' ).hide();
+								$( '#himoose-start-generate' ).hide();
 							} else {
 								$( '#himoose-remove-podcast' ).hide();
 								$( '#himoose-remove-section' ).hide();
 								$( '#himoose-fetch-podcasts' ).show();
+								$( '#himoose-start-generate' ).show();
 							}
 						} else {
 							$errorContainer.text( 'No audio was found for this domain,  you should generate some!' ).show();
@@ -503,23 +516,45 @@
 				$( '#himoose-remove-section' ).show();
 				$( '#himoose-remove-podcast' ).show();
 				$( '#himoose-fetch-podcasts' ).hide();
+				$( '#himoose-start-generate' ).hide();
+
+				if ( shouldSwapHelperOnSelect && $metaBoxHelperText.length ) {
+					$metaBoxHelperText.text( metaBoxHelperAfterSelectText ).show();
+				}
 			} else {
 				$( '#himoose_podcast_label' ).val( '' );
 				$( '#himoose-remove-podcast' ).hide();
 				$( '#himoose-remove-section' ).hide();
 				$( '#himoose-fetch-podcasts' ).show();
+				$( '#himoose-start-generate' ).show();
+
+				if ( shouldSwapHelperOnSelect && $metaBoxHelperText.length && metaBoxHelperDefaultHtml ) {
+					$metaBoxHelperText.html( metaBoxHelperDefaultHtml );
+				}
 			}
 		} );
 
 		$( '#himoose-remove-podcast' ).on( 'click', function( e ) {
 			e.preventDefault();
+			clearPoll();
+			setProgressDialog( false );
+			setStatusText( '' );
+			setHintText( '' );
+			setPreviewLink( null );
+			$( '.himoose-generate-error' ).hide().empty();
+
 			$( '#himoose_job_id' ).val( '' );
 			$( '#himoose_podcast_label' ).val( '' );
 			$( '#himoose-podcast-select' ).val( '' ).empty();
 			$( '#himoose-podcast-selector' ).hide();
 			$( '#himoose-remove-podcast' ).hide();
 			$( '#himoose-remove-section' ).hide();
+			$( '#himoose-generate-fields' ).hide();
+			$( '#himoose-start-generate' ).show();
 			$( '#himoose-fetch-podcasts' ).show();
+			$( '#himoose-meta-box-container p.description' ).not( '.himoose-shortcode-reminder' ).show();
+			$( '.himoose-generate-link' ).show();
+			$( '.himoose-shortcode-reminder' ).hide();
 		} );
 
 		$( document ).on( 'click', '.himoose-review-dismiss', function( e ) {
