@@ -108,6 +108,8 @@ function himoose_render_meta_box( $post ) {
 			</select>
 		</div>
 
+		<p class="himoose-preview" style="display:none;"></p>
+
 		<?php if ( $has_job && 'page' === $post_type ) : ?>
 			<p class="description himoose-shortcode-reminder">
 				<?php
@@ -149,6 +151,8 @@ function himoose_render_meta_box( $post ) {
 				<button type="button" id="himoose-fetch-podcasts" class="button button-secondary" style="<?php echo $has_job ? 'display:none;' : ''; ?>">
 					<?php esc_html_e( 'Load available audio', 'listen-to-this-article' ); ?>
 				</button>
+
+				<span class="spinner" id="himoose-spinner" style="<?php echo $has_job ? 'display:none;' : 'display:none;'; ?>"></span>
 
 				<button type="button" id="himoose-start-generate" class="button button-primary" style="<?php echo $has_job ? 'display:none;' : ''; ?>">
 					<?php
@@ -235,12 +239,9 @@ function himoose_render_meta_box( $post ) {
 				</p>
 
 				<p class="himoose-generate-status" style="display:none;"></p>
-				<p class="himoose-preview" style="display:none;"></p>
 				<p class="himoose-generate-hint" style="display:none;"></p>
 				<p class="himoose-generate-error" style="display:none;"></p>
 				</div>
-
-				<span class="spinner" id="himoose-spinner" style="<?php echo $has_job ? 'display:none;' : 'display:none;'; ?> float:none; margin-left: 5px;"></span>
 
 				<p class="himoose-error" style="<?php echo $has_job ? 'display:none;' : 'display:none;'; ?>"></p>
 				
@@ -459,21 +460,17 @@ function himoose_ajax_generate_podcast() {
 		wp_send_json_error( array( 'message' => __( 'Could not detect domain.', 'listen-to-this-article' ) ) );
 	}
 
-	$title_raw = isset( $_POST['title'] ) ? (string) wp_unslash( $_POST['title'] ) : '';
-	$content_raw = isset( $_POST['content'] ) ? (string) wp_unslash( $_POST['content'] ) : '';
-	$focus_raw = isset( $_POST['focus'] ) ? (string) wp_unslash( $_POST['focus'] ) : '';
-	$length_raw = isset( $_POST['length'] ) ? (string) wp_unslash( $_POST['length'] ) : 'SHORT';
-	$host_voice_raw = isset( $_POST['hostVoiceName'] ) ? (string) wp_unslash( $_POST['hostVoiceName'] ) : 'Sulafat';
-	$guest_voice_raw = isset( $_POST['guestVoiceName'] ) ? (string) wp_unslash( $_POST['guestVoiceName'] ) : 'Fenrir';
-	$primary_color_raw = isset( $_POST['primaryColor'] ) ? (string) wp_unslash( $_POST['primaryColor'] ) : '#667eea';
-	$secondary_color_raw = isset( $_POST['secondaryColor'] ) ? (string) wp_unslash( $_POST['secondaryColor'] ) : '#764ba2';
-	$custom_title_raw = isset( $_POST['customTitle'] ) ? (string) wp_unslash( $_POST['customTitle'] ) : '';
+	$title = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
+	$content = isset( $_POST['content'] ) ? sanitize_textarea_field( wp_unslash( $_POST['content'] ) ) : '';
+	$focus = isset( $_POST['focus'] ) ? sanitize_textarea_field( wp_unslash( $_POST['focus'] ) ) : '';
+	$length = isset( $_POST['length'] ) ? sanitize_text_field( wp_unslash( $_POST['length'] ) ) : 'SHORT';
+	$host_voice = isset( $_POST['hostVoiceName'] ) ? sanitize_text_field( wp_unslash( $_POST['hostVoiceName'] ) ) : 'Sulafat';
+	$guest_voice = isset( $_POST['guestVoiceName'] ) ? sanitize_text_field( wp_unslash( $_POST['guestVoiceName'] ) ) : 'Fenrir';
+	$primary_color = isset( $_POST['primaryColor'] ) ? sanitize_text_field( wp_unslash( $_POST['primaryColor'] ) ) : '#667eea';
+	$secondary_color = isset( $_POST['secondaryColor'] ) ? sanitize_text_field( wp_unslash( $_POST['secondaryColor'] ) ) : '#764ba2';
+	$custom_title = isset( $_POST['customTitle'] ) ? sanitize_text_field( wp_unslash( $_POST['customTitle'] ) ) : '';
 
-	$title = sanitize_text_field( $title_raw );
-	$focus = sanitize_textarea_field( $focus_raw );
-	$length = in_array( $length_raw, array( 'SHORT', 'STANDARD' ), true ) ? $length_raw : 'SHORT';
-	$host_voice = sanitize_text_field( $host_voice_raw );
-	$guest_voice = sanitize_text_field( $guest_voice_raw );
+	$length = in_array( $length, array( 'SHORT', 'STANDARD' ), true ) ? $length : 'SHORT';
 
 	$sanitize_hex = static function( $value, $fallback ) {
 		$v = trim( (string) $value );
@@ -489,12 +486,11 @@ function himoose_ajax_generate_podcast() {
 		return $fallback;
 	};
 
-	$primary_color = $sanitize_hex( $primary_color_raw, '#667eea' );
-	$secondary_color = $sanitize_hex( $secondary_color_raw, '#764ba2' );
-	$custom_title = sanitize_text_field( $custom_title_raw );
+	$primary_color = $sanitize_hex( $primary_color, '#667eea' );
+	$secondary_color = $sanitize_hex( $secondary_color, '#764ba2' );
 
 	// Normalize content to plain text (API-side can still re-process if needed).
-	$content_text = html_entity_decode( wp_strip_all_tags( $content_raw, true ), ENT_QUOTES | ENT_HTML5, get_bloginfo( 'charset' ) );
+	$content_text = html_entity_decode( wp_strip_all_tags( $content, true ), ENT_QUOTES | ENT_HTML5, get_bloginfo( 'charset' ) );
 	$content_text = trim( $content_text );
 
 	if ( '' === $title ) {

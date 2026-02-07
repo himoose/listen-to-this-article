@@ -3,7 +3,7 @@ Contributors: himoose
 Tags: text to speech, audio player, read aloud, text to audio, accessibility
 Requires at least: 6.0
 Tested up to: 6.9
-Stable tag: trunk
+Stable tag: 1.1.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -24,15 +24,15 @@ By offering an audio version of your content, you can:
 * **Improve Accessibility:** Great for readers with visual impairments or who prefer audio.
 * **Boost SEO & AEO:** The plugin embeds full transcripts and Schema.org JSON-LD data. The conversational nature of the transcript is optimized for Answer Engine Optimization (AEO) and Generative Engine Optimization (GEO), helping your content perform better in AI-powered search results like ChatGPT, Gemini, and Perplexity.
 
-This plugin automatically detects your domain, fetches your completed episodes from the Hi, Moose platform, and lets you insert them with a single click.
+This plugin automatically detects your domain and lets you manage audio right inside the WordPress editor: load available episodes for your domain or generate new audio for the post/page.
 
 On the Hi, Moose platform, you can customize each podcast-style audio version before embedding it—choose narration voices, adjust pacing and length, provide optional focus instructions, and fine-tune the player’s colors. Hi, Moose also includes built-in analytics showing listeners, plays, resumes, and completion rates. Once generated, the final audio and transcript are embedded on your WordPress site through a clean, lightweight player.
 
 = Useful Links =
 
-* **Live Demo:** https://himoose.com/listen-to-this-article
-* **Hi, Moose AEO Platform:** https://himoose.com
-* **Support:** https://himoose.com/contact
+* [**'Listen to this Article' Live Demo**](https://himoose.com/listen-to-this-article)
+* [**Hi, Moose AEO Platform**](https://himoose.com/)
+* [**Support**](https://himoose.com/contact)
 
 = Features =
 
@@ -45,7 +45,8 @@ On the Hi, Moose platform, you can customize each podcast-style audio version be
 * **Advanced Voice Customization:** Control voice style, pacing, accent, direction, and optional extended context.
 * **Customizable Player:** Choose a color style that matches your brand.
 * **Analytics:** Track plays, resumes, completion rate, total listen time, and engagement metrics.
-* **One-Click Embedding:** Choose an episode right from the post editor sidebar.
+* **In-Editor Audio Workflow:** Load available audio or generate new audio directly from the post editor sidebar.
+* **Preview Before Publishing:** Preview the selected audio in the editor, then click Update/Publish to save.
 * **Schema.org JSON-LD:** Automatically includes PodcastEpisode structured data.
 * **Flexible Placement:** Auto-insert at the top of a post or use the `[himoose_podcast]` shortcode.
 * **Lightweight Player:** Responsive and designed to load quickly.
@@ -70,6 +71,18 @@ This plugin relies on the [Hi, Moose](https://himoose.com) platform to generate 
 1.  Upload the plugin files to the `/wp-content/plugins/listen-to-this-article` directory, or install the plugin through the WordPress plugins screen.
 2.  Activate the plugin through the 'Plugins' screen in WordPress.
 3.  Go to **Settings → Hi, Moose Podcast Generator** and enter your API Key from Hi, Moose. 
+
+== How to Use ==
+
+1. Edit a post or page in WordPress.
+2. In the editor sidebar, find the **Audio Content** box.
+3. Click **Load available audio** to choose an existing episode, or **Generate audio** to create a new one.
+4. Preview the audio in the editor.
+5. Click **Update/Publish** to save your selection.
+
+Placement notes:
+* **Posts:** the player can be auto-inserted at the top of the post content (depending on the plugin setting), or you can place it manually using the shortcode.
+* **Pages:** you must insert the shortcode `[himoose_podcast]` in the page content to display the player.
 
 == Frequently Asked Questions ==
 
@@ -102,12 +115,10 @@ Yes! Use the shortcode `[himoose_podcast]` anywhere in your post content and thi
 == Changelog ==
 
 = 1.1.0 =
-* Generate new audio directly inside the editor (Classic + Block Editor meta box).
-* Add generation options (voices, length, focus, player colors, custom title) and save defaults for faster repeat use.
-* Support podcast selection and generation on both posts and pages (pages require the shortcode).
-* Show generation status, preview link, and upgrade messaging when limits are reached.
-
-= 1.0.1 =
+*   Generate new audio directly inside the editor (Classic + Block Editor meta box).
+*   Added generation options (voices, length, focus, player colors, custom title) and save defaults for faster repeat use.
+*   Added support for audio selection and generation on both posts and pages (pages require the shortcode).
+*   Show generation status and preview audio from the editor.
 *   WordPress 6.9.1 support.
 *   Updated demo URL.
 

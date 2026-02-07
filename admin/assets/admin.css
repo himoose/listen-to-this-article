@@ -15,7 +15,8 @@
 
 #himoose-spinner {
 	float: none;
-	margin-left: 5px;
+	display: block;
+	margin: 6px auto 0;
 }
 
 .himoose-error {

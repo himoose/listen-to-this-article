@@ -11,12 +11,25 @@ a podcast-style audio version of blog posts using AI-generated narration.
 - Improves accessibility, engagement, and modern SEO/AEO visibility
 
 ## How it works
-This plugin connects to the Hi, Moose [AEO platform](https://himoose.com/aeo-platform) to retrieve pre-generated
-podcast-style audio versions of articles and embeds them directly in WordPress,
-similar to how YouTube or Vimeo embeds work.
+This plugin connects to the Hi, Moose [AEO platform](https://himoose.com/aeo-platform) so you can generate and embed
+podcast-style audio versions of your content directly from the WordPress editor (Classic Editor or Block Editor).
+
+In the editor, you can either:
+- **Load available audio** (previously generated episodes for your domain), or
+- **Generate audio** for the post/page with a few customization options.
+
+Once selected, you **preview the audio** in the meta box and then click **Update/Publish** to save the selection.
+On posts, the player can be auto-inserted at the top of the content (or placed manually via shortcode). Pages require the shortcode.
 
 Audio playback, transcripts, and structured data are delivered as a single,
 self-contained embed that requires no manual audio file management.
+
+## How to use
+1. Install the plugin and add your Hi, Moose API key in WordPress settings.
+2. Edit a post or page and find the **Audio Content** meta box.
+3. Click **Load available audio** or **Generate audio**.
+4. Preview the audio, then click **Update/Publish** to save.
+5. For pages (and for posts if auto-insert is disabled), add the shortcode `[himoose_podcast]` where you want the player.
 
 ## Why this exists
 This project was built to help publishers improve accessibility and prepare

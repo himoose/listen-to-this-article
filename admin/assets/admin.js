@@ -87,6 +87,40 @@
 			}
 		}
 
+		function fetchPreviewUrlForJobId( jobId, callback ) {
+			if ( ! jobId ) {
+				callback( null );
+				return;
+			}
+			$.ajax( {
+				url: himooseAjax.ajaxurl,
+				type: 'POST',
+				data: {
+					action: 'himoose_get_podcast_status',
+					nonce: himooseAjax.nonce,
+					jobId: jobId
+				},
+				success: function( response ) {
+					if ( ! response || ! response.success || ! response.data ) {
+						callback( null );
+						return;
+					}
+					var data = response.data || {};
+					callback( data.previewUrl || data.preview_url || null );
+				},
+				error: function() {
+					callback( null );
+				}
+			} );
+		}
+
+		function looksLikeAudioUrl( url ) {
+			if ( ! url ) {
+				return false;
+			}
+			return /\.(mp3|wav|m4a|ogg)(\?|$)/i.test( String( url ) );
+		}
+
 		function setProgressDialog( visible, message ) {
 			var $dialog = $( '.himoose-progress-dialog' );
 			if ( ! $dialog.length ) {
@@ -224,7 +258,7 @@
 							var label = data.label || ( 'Audio Selected (ID: ' + data.jobId + ')' );
 							upsertSelectOption( data.jobId, label );
 						}
-						setHintText( 'Reminder: click Update/Publish to persist this selection.' );
+						setHintText( '' );
 					} else if ( status === 'failed' ) {
 						clearPoll();
 						setProgressDialog( false );
@@ -451,6 +485,17 @@
 								// Map API fields: id -> jobId, created -> completedDate
 								var id = podcast.id || podcast.jobId;
 								var date = podcast.created || podcast.completedDate || '';
+								var previewUrl =
+									podcast.previewUrl ||
+									podcast.preview_url ||
+									podcast.audioUrl ||
+									podcast.audio_url ||
+									podcast.mp3Url ||
+									podcast.mp3_url ||
+									podcast.audioFileUrl ||
+									podcast.audio_file_url ||
+									podcast.url ||
+									'';
 
 								// Format date if possible (simple substring for YYYY-MM-DD)
 								if ( date && date.length >= 10 ) {
@@ -471,11 +516,15 @@
 									$( '#himoose_podcast_label' ).val( text );
 								}
 
-								$select.append( $( '<option>', {
+								var $opt = $( '<option>', {
 									value: id,
 									text: text,
 									selected: isSelected
-								} ) );
+								} );
+								if ( previewUrl ) {
+									$opt.attr( 'data-preview-url', previewUrl );
+								}
+								$select.append( $opt );
 							} );
 							$container.show();
 
@@ -508,7 +557,9 @@
 
 		$( '#himoose-podcast-select' ).on( 'change', function() {
 			var jobId = $( this ).val();
-			var label = $( this ).find( 'option:selected' ).text();
+			var $selected = $( this ).find( 'option:selected' );
+			var label = $selected.text();
+			var previewUrl = $selected.attr( 'data-preview-url' ) || '';
 			$( '#himoose_job_id' ).val( jobId );
 
 			if ( jobId ) {
@@ -517,6 +568,25 @@
 				$( '#himoose-remove-podcast' ).show();
 				$( '#himoose-fetch-podcasts' ).hide();
 				$( '#himoose-start-generate' ).hide();
+
+				// If we have a preview URL from the API response, load it into the preview player.
+				if ( previewUrl && looksLikeAudioUrl( previewUrl ) ) {
+					setPreviewLink( previewUrl );
+				} else {
+					fetchPreviewUrlForJobId( jobId, function( fetchedUrl ) {
+						// Ensure the selection hasn't changed.
+						if ( $( '#himoose-podcast-select' ).val() !== jobId ) {
+							return;
+						}
+						if ( fetchedUrl ) {
+							$selected.attr( 'data-preview-url', fetchedUrl );
+							setPreviewLink( fetchedUrl );
+						} else if ( previewUrl ) {
+							// Fall back to the list-provided URL even if it doesn't look like a direct audio file.
+							setPreviewLink( previewUrl );
+						}
+					} );
+				}
 
 				if ( shouldSwapHelperOnSelect && $metaBoxHelperText.length ) {
 					$metaBoxHelperText.text( metaBoxHelperAfterSelectText ).show();
@@ -527,12 +597,34 @@
 				$( '#himoose-remove-section' ).hide();
 				$( '#himoose-fetch-podcasts' ).show();
 				$( '#himoose-start-generate' ).show();
+				setPreviewLink( null );
 
 				if ( shouldSwapHelperOnSelect && $metaBoxHelperText.length && metaBoxHelperDefaultHtml ) {
 					$metaBoxHelperText.html( metaBoxHelperDefaultHtml );
 				}
 			}
 		} );
+
+		// If the meta box loads with a selected jobId (e.g. existing selection), try to load its preview.
+		var $podcastSelect = $( '#himoose-podcast-select' );
+		if ( $podcastSelect.length && $podcastSelect.val() ) {
+			var $opt = $podcastSelect.find( 'option:selected' );
+			var initialPreviewUrl = $opt.attr( 'data-preview-url' ) || '';
+			var initialJobId = $podcastSelect.val();
+			if ( initialPreviewUrl ) {
+				setPreviewLink( initialPreviewUrl );
+			} else {
+				fetchPreviewUrlForJobId( initialJobId, function( fetchedUrl ) {
+					if ( $podcastSelect.val() !== initialJobId ) {
+						return;
+					}
+					if ( fetchedUrl ) {
+						$podcastSelect.find( 'option:selected' ).attr( 'data-preview-url', fetchedUrl );
+						setPreviewLink( fetchedUrl );
+					}
+				} );
+			}
+		}
 
 		$( '#himoose-remove-podcast' ).on( 'click', function( e ) {
 			e.preventDefault();
