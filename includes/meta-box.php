@@ -128,7 +128,7 @@ function himoose_render_meta_box( $post ) {
 					?>
 				</p>
 				<p class="himoose-review-prompt-actions">
-					<a class="button button-secondary" target="_blank" rel="noopener noreferrer" href="https://wordpress.org/support/plugin/listen-to-this-article/reviews/?filter=5">
+					<a class="button button-secondary" target="_blank" rel="noopener noreferrer" href="https://wordpress.org/support/plugin/listen-to-this-article/reviews/">
 						<?php esc_html_e( 'Leave a review', 'listen-to-this-article' ); ?>
 					</a>
 					<button type="button" class="button-link himoose-review-dismiss">

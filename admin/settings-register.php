@@ -158,7 +158,7 @@ function himoose_section_review_callback() {
  * Review prompt field callback.
  */
 function himoose_field_review_prompt_callback() {
-	$review_url = 'https://wordpress.org/support/plugin/listen-to-this-article/reviews/?filter=5';
+	$review_url = 'https://wordpress.org/support/plugin/listen-to-this-article/reviews/';
 	?>
 	<p style="margin:0 0 8px;">
 		<?php echo esc_html__( '⭐⭐⭐⭐⭐ Please consider leaving a 5-star review; it really helps!', 'listen-to-this-article' ); ?>

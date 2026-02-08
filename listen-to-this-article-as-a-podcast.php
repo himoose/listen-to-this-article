@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:       Listen to This Article as a Podcast
+ * Plugin Name:       Listen to This Article as a Podcast – AI Text to Speech Audio Player
  * Plugin URI:        https://himoose.com/listen-to-this-article
  * Description:       Turn your articles into podcast-style audio using natural AI narration, and add a clean embedded player to your posts. Great for “listen to this article,” accessibility, and SEO/AEO.
  * Version:           1.1.0
