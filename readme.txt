@@ -59,8 +59,8 @@ This plugin relies on the [Hi, Moose](https://himoose.com) platform to generate 
 
 *The audio player and transcript are delivered as an embed directly from the Hi, Moose platform, similar to how YouTube or Vimeo embeds work.*
 
-* **Service:** Hi, Moose (AI Podcast Generator)
-* **Data Sent:** From the plugin, only your domain name is sent to our API to retrieve podcast episodes. No post content or user data is sent.
+* **Service:** Hi, Moose (Listen to this Article AI Podcast Generator)
+* **Data Sent**: To retrieve existing episodes, the plugin sends your site's domain name to our API. If you choose to generate audio from within WordPress, the plugin sends the post title and post content to Hi, Moose to generate the audio. No WordPress user account data is sent.
 * **Analytics:** The embedded player tracks plays, pauses, and transcript interactions. IP addresses are hashed before storage. No personally identifiable information (PII) is collected.
 * **Pricing & Free Tier:** Hi, Moose includes a free tier for WordPress users with 3 free podcast episodes and up to 10,000 monthly listens. Optional paid plans are available if you need more capacity, but this plugin will not show ads, nag banners, or restrict the WordPress editing experience.
 * **Terms of Use:** [https://himoose.com/terms](https://himoose.com/terms)
