@@ -2,8 +2,8 @@
 Contributors: himoose
 Tags: text to speech, audio player, read aloud, podcast, accessibility
 Requires at least: 6.0
-Tested up to: 6.9.1
-Stable tag: 1.1.0
+Tested up to: 6.9.4
+Stable tag: 1.2.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -51,14 +51,16 @@ On the Hi, Moose platform, you can customize each podcast-style audio version be
 
 * **“Listen to This Article” Button:** Add an instant audio version of your post.
 * **AI Text-to-Speech:** High-quality AI voices generate natural, podcast-style audio.
+* **Voice Selection:** Choose separate host and guest voices for each audio version.
+* **Length & Prompt Controls:** Set audio length, add basic instructions, and tailor the generated conversation to your content.
+* **Advanced Audio Customization:** Add host direction, guest direction, scene, style, pace, accent, and extra context for more control over delivery.
+* **Player Title & Branding:** Customize the player title and choose primary and secondary colors to match your brand.
 * **SEO-Friendly Transcript:** Embeds a full, indexable transcript for improved accessibility, SEO, and AEO/GEO/AI search visibility.
 * **Natural-Sounding Voices:** No robotic monotone or awkward pauses—voices are designed to sound human, conversational, and clear.
 * **Hosted Audio Delivery:** No hosting required. Audio and transcripts are delivered via a global CDN.
 * **Multilingual Text to Speech:** Supports 24 languages with automatic detection or manual selection.
-* **Advanced Voice Customization:** Control voice style, pacing, accent, direction, and optional extended context.
-* **Customizable Player:** Choose a color style that matches your brand.
 * **Analytics:** Track plays, resumes, completion rate, total listen time, and engagement metrics.
-* **In-Editor Audio Workflow:** Load available audio or generate new audio directly from the post editor sidebar.
+* **In-Editor Audio Workflow:** Load available audio or generate new audio directly from the post editor sidebar in both Classic and Block Editor.
 * **Preview Before Publishing:** Preview the selected audio in the editor, then click Update/Publish to save.
 * **Schema.org JSON-LD:** Automatically includes PodcastEpisode structured data.
 * **Flexible Placement:** Auto-insert at the top of a post or use the `[himoose_podcast]` shortcode.
@@ -139,14 +141,21 @@ Yes. Hi, Moose includes built-in analytics showing plays, resumes, completion ra
 
 == Screenshots ==
 
-1. Podcast player embedded at the top of a blog post.
-2. Selecting a generated podcast episode from the Classic Editor sidebar.
-3. Selecting a generated podcast episode from the Block Editor sidebar.
-4. Using the optional `[himoose_podcast]` shortcode.
-5. Plugin settings page for entering your Hi, Moose API key.
+1. Audio player and transcript embedded into a post.
+2. Audio content controls from the Block Editor sidebar.
+3. Audio content controls from the Classic Editor sidebar.
+4. Audio Advanced Mode controls from the sidebar.
+5. Audio analytics viewe from the Hi, Moose web app.
 
 
 == Changelog ==
+
+= 1.2.0 =
+*   Added advanced customization controls directly in the editor for both Classic and Block Editor workflows.
+*   Persist advanced customization defaults for faster repeat generation.
+*   Updated the editor link to open analytics from the sidebar.
+*   Improved customization layout handling in narrow editor sidebars.
+*   Fixed a voice sample typo that prevented one sample from playing correctly.
 
 = 1.1.0 =
 *   Generate new audio directly inside the editor (Classic + Block Editor meta box).

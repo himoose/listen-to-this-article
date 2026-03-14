@@ -8,6 +8,50 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Trim a UTF-8 string to a safe maximum length.
+ *
+ * @param string $value Raw value.
+ * @param int    $max_length Maximum length.
+ * @return string
+ */
+function himoose_trim_generation_value( $value, $max_length ) {
+	$value      = trim( wp_check_invalid_utf8( (string) $value ) );
+	$max_length = max( 0, (int) $max_length );
+
+	if ( 0 === $max_length || '' === $value ) {
+		return $value;
+	}
+
+	if ( function_exists( 'mb_substr' ) ) {
+		return mb_substr( $value, 0, $max_length );
+	}
+
+	return substr( $value, 0, $max_length );
+}
+
+/**
+ * Sanitize a short generation field.
+ *
+ * @param string $value Raw value.
+ * @param int    $max_length Maximum length.
+ * @return string
+ */
+function himoose_sanitize_generation_text_field( $value, $max_length ) {
+	return himoose_trim_generation_value( sanitize_text_field( wp_unslash( $value ) ), $max_length );
+}
+
+/**
+ * Sanitize a textarea generation field.
+ *
+ * @param string $value Raw value.
+ * @param int    $max_length Maximum length.
+ * @return string
+ */
+function himoose_sanitize_generation_textarea_field( $value, $max_length ) {
+	return himoose_trim_generation_value( sanitize_textarea_field( wp_unslash( $value ) ), $max_length );
+}
+
+/**
  * Add Meta Box.
  */
 function himoose_add_meta_box() {
@@ -47,6 +91,15 @@ function himoose_render_meta_box( $post ) {
 	$default_length = isset( $defaults['length'] ) && is_string( $defaults['length'] ) && $defaults['length'] ? $defaults['length'] : 'SHORT';
 	$default_focus = isset( $defaults['focus'] ) && is_string( $defaults['focus'] ) ? $defaults['focus'] : '';
 	$default_custom_title = isset( $defaults['customTitle'] ) && is_string( $defaults['customTitle'] ) && $defaults['customTitle'] ? $defaults['customTitle'] : __( 'Listen to this article as a podcast', 'listen-to-this-article' );
+	$default_use_advanced = ! empty( $defaults['useAdvancedCustomization'] );
+	$default_advanced = isset( $defaults['advancedCustomization'] ) && is_array( $defaults['advancedCustomization'] ) ? $defaults['advancedCustomization'] : array();
+	$default_context = isset( $default_advanced['context'] ) && is_string( $default_advanced['context'] ) ? $default_advanced['context'] : '';
+	$default_director_accent = isset( $default_advanced['directorAccent'] ) && is_string( $default_advanced['directorAccent'] ) ? $default_advanced['directorAccent'] : '';
+	$default_director_pace = isset( $default_advanced['directorPace'] ) && is_string( $default_advanced['directorPace'] ) ? $default_advanced['directorPace'] : '';
+	$default_director_style = isset( $default_advanced['directorStyle'] ) && is_string( $default_advanced['directorStyle'] ) ? $default_advanced['directorStyle'] : '';
+	$default_guest_direction = isset( $default_advanced['guestDirection'] ) && is_string( $default_advanced['guestDirection'] ) ? $default_advanced['guestDirection'] : '';
+	$default_host_direction = isset( $default_advanced['hostDirection'] ) && is_string( $default_advanced['hostDirection'] ) ? $default_advanced['hostDirection'] : '';
+	$default_scene = isset( $default_advanced['scene'] ) && is_string( $default_advanced['scene'] ) ? $default_advanced['scene'] : '';
 
 	$voices = array(
 		array( 'value' => 'Zephyr', 'label' => 'Zephyr (Bright)' ),
@@ -60,7 +113,7 @@ function himoose_render_meta_box( $post ) {
 		array( 'value' => 'Callirrhoe', 'label' => 'Callirrhoe (Easy-going)' ),
 		array( 'value' => 'Autonoe', 'label' => 'Autonoe (Bright)' ),
 		array( 'value' => 'Enceladus', 'label' => 'Enceladus (Breathy)' ),
-		array( 'value' => 'Iapetus', 'label' => 'Iapetus (Clear)' ),
+		array( 'value' => 'Lapetus', 'label' => 'Lapetus (Clear)' ),
 		array( 'value' => 'Umbriel', 'label' => 'Umbriel (Easy-going)' ),
 		array( 'value' => 'Algieba', 'label' => 'Algieba (Smooth)' ),
 		array( 'value' => 'Despina', 'label' => 'Despina (Smooth)' ),
@@ -173,6 +226,25 @@ function himoose_render_meta_box( $post ) {
 							</span>
 						</div>
 					</div>
+				<p class="himoose-field himoose-customization-mode" role="group" aria-label="<?php esc_attr_e( 'Customization mode', 'listen-to-this-article' ); ?>">
+					<button
+						type="button"
+						class="button himoose-mode-toggle <?php echo $default_use_advanced ? '' : 'is-active'; ?>"
+						data-mode="basic"
+						aria-pressed="<?php echo $default_use_advanced ? 'false' : 'true'; ?>"
+					>
+						<?php esc_html_e( 'Basic Customization', 'listen-to-this-article' ); ?>
+					</button>
+					<button
+						type="button"
+						class="button himoose-mode-toggle <?php echo $default_use_advanced ? 'is-active' : ''; ?>"
+						data-mode="advanced"
+						aria-pressed="<?php echo $default_use_advanced ? 'true' : 'false'; ?>"
+					>
+						<?php esc_html_e( 'Advanced Customization', 'listen-to-this-article' ); ?>
+					</button>
+					<input type="hidden" id="himoose-use-advanced-customization" value="<?php echo $default_use_advanced ? '1' : '0'; ?>" />
+				</p>
 				<p class="himoose-field">
 					<label for="himoose-custom-title"><strong><?php esc_html_e( 'Player title (leave empty to omit)', 'listen-to-this-article' ); ?></strong></label>
 					<input type="text" id="himoose-custom-title" class="widefat" value="<?php echo esc_attr( $default_custom_title ); ?>" />
@@ -226,6 +298,47 @@ function himoose_render_meta_box( $post ) {
 					<textarea id="himoose-focus" class="widefat" rows="3" placeholder="<?php echo esc_attr__( 'E.g., keep it upbeat, focus on key takeaways, avoid jargon...', 'listen-to-this-article' ); ?>"><?php echo esc_textarea( $default_focus ); ?></textarea>
 				</p>
 
+				<div class="himoose-advanced-fields" style="<?php echo $default_use_advanced ? '' : 'display:none;'; ?>">
+					<p class="himoose-field himoose-advanced-note">
+						<?php esc_html_e( 'Advanced guidance is optional. Keep it concise but specific so the model has clear direction.', 'listen-to-this-article' ); ?>
+					</p>
+
+					<p class="himoose-field">
+						<label for="himoose-host-direction"><strong><?php esc_html_e( 'Host direction', 'listen-to-this-article' ); ?></strong></label>
+						<textarea id="himoose-host-direction" class="widefat" rows="3" maxlength="500" placeholder="<?php echo esc_attr__( 'Optional host-specific delivery notes...', 'listen-to-this-article' ); ?>"><?php echo esc_textarea( $default_host_direction ); ?></textarea>
+					</p>
+
+					<p class="himoose-field">
+						<label for="himoose-guest-direction"><strong><?php esc_html_e( 'Guest direction', 'listen-to-this-article' ); ?></strong></label>
+						<textarea id="himoose-guest-direction" class="widefat" rows="3" maxlength="500" placeholder="<?php echo esc_attr__( 'Optional guest-specific delivery notes...', 'listen-to-this-article' ); ?>"><?php echo esc_textarea( $default_guest_direction ); ?></textarea>
+					</p>
+
+					<p class="himoose-field">
+						<label for="himoose-scene"><strong><?php esc_html_e( 'The scene', 'listen-to-this-article' ); ?></strong></label>
+						<textarea id="himoose-scene" class="widefat" rows="3" maxlength="500" placeholder="<?php echo esc_attr__( 'Optional atmosphere, setting, or vibe...', 'listen-to-this-article' ); ?>"><?php echo esc_textarea( $default_scene ); ?></textarea>
+					</p>
+
+					<p class="himoose-field">
+						<label for="himoose-director-style"><strong><?php esc_html_e( 'Conversation style', 'listen-to-this-article' ); ?></strong></label>
+						<textarea id="himoose-director-style" class="widefat" rows="2" maxlength="300" placeholder="<?php echo esc_attr__( 'Optional style guidance...', 'listen-to-this-article' ); ?>"><?php echo esc_textarea( $default_director_style ); ?></textarea>
+					</p>
+
+					<p class="himoose-field">
+						<label for="himoose-director-pace"><strong><?php esc_html_e( 'Conversation pace', 'listen-to-this-article' ); ?></strong></label>
+						<textarea id="himoose-director-pace" class="widefat" rows="2" maxlength="300" placeholder="<?php echo esc_attr__( 'Optional pacing guidance...', 'listen-to-this-article' ); ?>"><?php echo esc_textarea( $default_director_pace ); ?></textarea>
+					</p>
+
+					<p class="himoose-field">
+						<label for="himoose-director-accent"><strong><?php esc_html_e( 'Accent', 'listen-to-this-article' ); ?></strong></label>
+						<textarea id="himoose-director-accent" class="widefat" rows="2" maxlength="220" placeholder="<?php echo esc_attr__( 'Optional accent guidance...', 'listen-to-this-article' ); ?>"><?php echo esc_textarea( $default_director_accent ); ?></textarea>
+					</p>
+
+					<p class="himoose-field">
+						<label for="himoose-context"><strong><?php esc_html_e( 'More context', 'listen-to-this-article' ); ?></strong></label>
+						<textarea id="himoose-context" class="widefat" rows="4" maxlength="700" placeholder="<?php echo esc_attr__( 'Optional audience or brand context...', 'listen-to-this-article' ); ?>"><?php echo esc_textarea( $default_context ); ?></textarea>
+					</p>
+				</div>
+
 				<p class="himoose-field">
 					<span class="himoose-generate-actions">
 						<button type="button" id="himoose-generate-submit" class="button button-primary">
@@ -262,7 +375,7 @@ function himoose_render_meta_box( $post ) {
 
 				<p class="himoose-generate-link" style="<?php echo $has_job ? 'display:none;' : ''; ?>">
 					<a href="<?php echo esc_url( himoose_get_app_base() . '/podcast-generator' ); ?>" target="_blank">
-						<?php esc_html_e( 'Use advanced mode instead', 'listen-to-this-article' ); ?>
+						<?php esc_html_e( '📈 Open Analytics', 'listen-to-this-article' ); ?>
 					</a>
 				</p>
 
@@ -462,13 +575,23 @@ function himoose_ajax_generate_podcast() {
 
 	$title = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
 	$content = isset( $_POST['content'] ) ? sanitize_textarea_field( wp_unslash( $_POST['content'] ) ) : '';
-	$focus = isset( $_POST['focus'] ) ? sanitize_textarea_field( wp_unslash( $_POST['focus'] ) ) : '';
+	$focus = isset( $_POST['focus'] ) ? himoose_sanitize_generation_textarea_field( $_POST['focus'], 500 ) : '';
 	$length = isset( $_POST['length'] ) ? sanitize_text_field( wp_unslash( $_POST['length'] ) ) : 'SHORT';
 	$host_voice = isset( $_POST['hostVoiceName'] ) ? sanitize_text_field( wp_unslash( $_POST['hostVoiceName'] ) ) : 'Sulafat';
 	$guest_voice = isset( $_POST['guestVoiceName'] ) ? sanitize_text_field( wp_unslash( $_POST['guestVoiceName'] ) ) : 'Fenrir';
 	$primary_color = isset( $_POST['primaryColor'] ) ? sanitize_text_field( wp_unslash( $_POST['primaryColor'] ) ) : '#667eea';
 	$secondary_color = isset( $_POST['secondaryColor'] ) ? sanitize_text_field( wp_unslash( $_POST['secondaryColor'] ) ) : '#764ba2';
-	$custom_title = isset( $_POST['customTitle'] ) ? sanitize_text_field( wp_unslash( $_POST['customTitle'] ) ) : '';
+	$custom_title = isset( $_POST['customTitle'] ) ? himoose_sanitize_generation_text_field( $_POST['customTitle'], 140 ) : '';
+	$use_advanced_customization = ! empty( $_POST['useAdvancedCustomization'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['useAdvancedCustomization'] ) );
+	$advanced_customization = array(
+		'context'         => isset( $_POST['context'] ) ? himoose_sanitize_generation_textarea_field( $_POST['context'], 700 ) : '',
+		'directorAccent'  => isset( $_POST['directorAccent'] ) ? himoose_sanitize_generation_textarea_field( $_POST['directorAccent'], 220 ) : '',
+		'directorPace'    => isset( $_POST['directorPace'] ) ? himoose_sanitize_generation_textarea_field( $_POST['directorPace'], 300 ) : '',
+		'directorStyle'   => isset( $_POST['directorStyle'] ) ? himoose_sanitize_generation_textarea_field( $_POST['directorStyle'], 300 ) : '',
+		'guestDirection'  => isset( $_POST['guestDirection'] ) ? himoose_sanitize_generation_textarea_field( $_POST['guestDirection'], 500 ) : '',
+		'hostDirection'   => isset( $_POST['hostDirection'] ) ? himoose_sanitize_generation_textarea_field( $_POST['hostDirection'], 500 ) : '',
+		'scene'           => isset( $_POST['scene'] ) ? himoose_sanitize_generation_textarea_field( $_POST['scene'], 500 ) : '',
+	);
 
 	$length = in_array( $length, array( 'SHORT', 'STANDARD' ), true ) ? $length : 'SHORT';
 
@@ -511,6 +634,8 @@ function himoose_ajax_generate_podcast() {
 			'length' => $length,
 			'focus' => $focus,
 			'customTitle' => $custom_title,
+			'useAdvancedCustomization' => $use_advanced_customization,
+			'advancedCustomization' => $advanced_customization,
 		),
 		false
 	);
@@ -523,6 +648,8 @@ function himoose_ajax_generate_podcast() {
 		'content'        => $content_text,
 		'focus'          => $focus,
 		'length'         => $length,
+		'useAdvancedCustomization' => $use_advanced_customization,
+		'advancedCustomization' => $advanced_customization,
 		'hostVoiceName'  => $host_voice,
 		'guestVoiceName' => $guest_voice,
 		'playerConfig'   => array(

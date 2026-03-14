@@ -6,6 +6,7 @@
 		var currentJobId = null;
 		var currentPreviewUrl = null;
 		var sampleAudio = null;
+		var $advancedCustomizationInput = $( '#himoose-use-advanced-customization' );
 
 		// Meta box helper text (under the buttons). We'll swap it after a dropdown selection.
 		var $metaBoxHelperText = $( '#himoose-meta-box-container p.description' ).not( '.himoose-shortcode-reminder' );
@@ -136,6 +137,27 @@
 			} else {
 				$dialog.hide();
 			}
+		}
+
+		function setCustomizationMode( mode ) {
+			var isAdvanced = mode === 'advanced';
+
+			$( '.himoose-mode-toggle' ).each( function() {
+				var $button = $( this );
+				var isActive = $button.data( 'mode' ) === mode;
+				$button.toggleClass( 'is-active', isActive );
+				$button.attr( 'aria-pressed', isActive ? 'true' : 'false' );
+			} );
+
+			if ( $advancedCustomizationInput.length ) {
+				$advancedCustomizationInput.val( isAdvanced ? '1' : '0' );
+			}
+
+			$( '.himoose-advanced-fields' ).toggle( isAdvanced );
+		}
+
+		function getCustomizationMode() {
+			return $advancedCustomizationInput.length && $advancedCustomizationInput.val() === '1' ? 'advanced' : 'basic';
 		}
 
 		function collapseGenerationControls() {
@@ -276,6 +298,13 @@
 			$( '.himoose-color-field' ).wpColorPicker();
 		}
 
+		setCustomizationMode( getCustomizationMode() );
+
+		$( '.himoose-mode-toggle' ).on( 'click', function( e ) {
+			e.preventDefault();
+			setCustomizationMode( $( this ).data( 'mode' ) === 'advanced' ? 'advanced' : 'basic' );
+		} );
+
 		var $startGenerate = $( '#himoose-start-generate' );
 		var startGenerateDefaultLabel = ( $startGenerate.text() || '' ).trim();
 		$( '#himoose-start-generate' ).on( 'click', function( e ) {
@@ -378,7 +407,15 @@
 				guestVoiceName: $( '#himoose-guest-voice' ).val() || 'Fenrir',
 				primaryColor: $( '#himoose-primary-color' ).val() || '#667eea',
 				secondaryColor: $( '#himoose-secondary-color' ).val() || '#764ba2',
-				customTitle: $( '#himoose-custom-title' ).val() || ''
+				customTitle: $( '#himoose-custom-title' ).val() || '',
+				useAdvancedCustomization: getCustomizationMode() === 'advanced' ? '1' : '0',
+				context: $( '#himoose-context' ).val() || '',
+				directorAccent: $( '#himoose-director-accent' ).val() || '',
+				directorPace: $( '#himoose-director-pace' ).val() || '',
+				directorStyle: $( '#himoose-director-style' ).val() || '',
+				guestDirection: $( '#himoose-guest-direction' ).val() || '',
+				hostDirection: $( '#himoose-host-direction' ).val() || '',
+				scene: $( '#himoose-scene' ).val() || ''
 			};
 
 			$( '#himoose-generate-submit' ).prop( 'disabled', true );
