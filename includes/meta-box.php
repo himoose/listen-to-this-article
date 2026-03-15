@@ -37,7 +37,7 @@ function himoose_trim_generation_value( $value, $max_length ) {
  * @return string
  */
 function himoose_sanitize_generation_text_field( $value, $max_length ) {
-	return himoose_trim_generation_value( sanitize_text_field( wp_unslash( $value ) ), $max_length );
+	return himoose_trim_generation_value( sanitize_text_field( $value ), $max_length );
 }
 
 /**
@@ -48,7 +48,7 @@ function himoose_sanitize_generation_text_field( $value, $max_length ) {
  * @return string
  */
 function himoose_sanitize_generation_textarea_field( $value, $max_length ) {
-	return himoose_trim_generation_value( sanitize_textarea_field( wp_unslash( $value ) ), $max_length );
+	return himoose_trim_generation_value( sanitize_textarea_field( $value ), $max_length );
 }
 
 /**
@@ -575,22 +575,22 @@ function himoose_ajax_generate_podcast() {
 
 	$title = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
 	$content = isset( $_POST['content'] ) ? sanitize_textarea_field( wp_unslash( $_POST['content'] ) ) : '';
-	$focus = isset( $_POST['focus'] ) ? himoose_sanitize_generation_textarea_field( $_POST['focus'], 500 ) : '';
+	$focus = isset( $_POST['focus'] ) ? himoose_trim_generation_value( sanitize_textarea_field( wp_unslash( $_POST['focus'] ) ), 500 ) : '';
 	$length = isset( $_POST['length'] ) ? sanitize_text_field( wp_unslash( $_POST['length'] ) ) : 'SHORT';
 	$host_voice = isset( $_POST['hostVoiceName'] ) ? sanitize_text_field( wp_unslash( $_POST['hostVoiceName'] ) ) : 'Sulafat';
 	$guest_voice = isset( $_POST['guestVoiceName'] ) ? sanitize_text_field( wp_unslash( $_POST['guestVoiceName'] ) ) : 'Fenrir';
 	$primary_color = isset( $_POST['primaryColor'] ) ? sanitize_text_field( wp_unslash( $_POST['primaryColor'] ) ) : '#667eea';
 	$secondary_color = isset( $_POST['secondaryColor'] ) ? sanitize_text_field( wp_unslash( $_POST['secondaryColor'] ) ) : '#764ba2';
-	$custom_title = isset( $_POST['customTitle'] ) ? himoose_sanitize_generation_text_field( $_POST['customTitle'], 140 ) : '';
+	$custom_title = isset( $_POST['customTitle'] ) ? himoose_trim_generation_value( sanitize_text_field( wp_unslash( $_POST['customTitle'] ) ), 140 ) : '';
 	$use_advanced_customization = ! empty( $_POST['useAdvancedCustomization'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['useAdvancedCustomization'] ) );
 	$advanced_customization = array(
-		'context'         => isset( $_POST['context'] ) ? himoose_sanitize_generation_textarea_field( $_POST['context'], 700 ) : '',
-		'directorAccent'  => isset( $_POST['directorAccent'] ) ? himoose_sanitize_generation_textarea_field( $_POST['directorAccent'], 220 ) : '',
-		'directorPace'    => isset( $_POST['directorPace'] ) ? himoose_sanitize_generation_textarea_field( $_POST['directorPace'], 300 ) : '',
-		'directorStyle'   => isset( $_POST['directorStyle'] ) ? himoose_sanitize_generation_textarea_field( $_POST['directorStyle'], 300 ) : '',
-		'guestDirection'  => isset( $_POST['guestDirection'] ) ? himoose_sanitize_generation_textarea_field( $_POST['guestDirection'], 500 ) : '',
-		'hostDirection'   => isset( $_POST['hostDirection'] ) ? himoose_sanitize_generation_textarea_field( $_POST['hostDirection'], 500 ) : '',
-		'scene'           => isset( $_POST['scene'] ) ? himoose_sanitize_generation_textarea_field( $_POST['scene'], 500 ) : '',
+		'context'         => isset( $_POST['context'] ) ? himoose_trim_generation_value( sanitize_textarea_field( wp_unslash( $_POST['context'] ) ), 700 ) : '',
+		'directorAccent'  => isset( $_POST['directorAccent'] ) ? himoose_trim_generation_value( sanitize_textarea_field( wp_unslash( $_POST['directorAccent'] ) ), 220 ) : '',
+		'directorPace'    => isset( $_POST['directorPace'] ) ? himoose_trim_generation_value( sanitize_textarea_field( wp_unslash( $_POST['directorPace'] ) ), 300 ) : '',
+		'directorStyle'   => isset( $_POST['directorStyle'] ) ? himoose_trim_generation_value( sanitize_textarea_field( wp_unslash( $_POST['directorStyle'] ) ), 300 ) : '',
+		'guestDirection'  => isset( $_POST['guestDirection'] ) ? himoose_trim_generation_value( sanitize_textarea_field( wp_unslash( $_POST['guestDirection'] ) ), 500 ) : '',
+		'hostDirection'   => isset( $_POST['hostDirection'] ) ? himoose_trim_generation_value( sanitize_textarea_field( wp_unslash( $_POST['hostDirection'] ) ), 500 ) : '',
+		'scene'           => isset( $_POST['scene'] ) ? himoose_trim_generation_value( sanitize_textarea_field( wp_unslash( $_POST['scene'] ) ), 500 ) : '',
 	);
 
 	$length = in_array( $length, array( 'SHORT', 'STANDARD' ), true ) ? $length : 'SHORT';

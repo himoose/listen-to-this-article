@@ -2,7 +2,7 @@
 Contributors: himoose
 Tags: text to speech, audio player, read aloud, podcast, accessibility
 Requires at least: 6.0
-Tested up to: 6.9.4
+Tested up to: 6.9
 Stable tag: 1.2.0
 Requires PHP: 7.4
 License: GPLv2 or later
