@@ -8,6 +8,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Display success notice after automated connection.
+ */
+function himoose_connect_success_notice() {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( isset( $_GET['page'] ) && 'himoose-settings' === $_GET['page'] && isset( $_GET['himoose_connect'] ) ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( 'success' === $_GET['himoose_connect'] ) {
+			?>
+			<div class="notice notice-success is-dismissible">
+				<p><strong><?php esc_html_e( 'Success!', 'listen-to-this-article' ); ?></strong> <?php esc_html_e( 'Your account has been successfully connected and your API Key is securely saved.', 'listen-to-this-article' ); ?></p>
+			</div>
+			<?php
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		} elseif ( 'error' === $_GET['himoose_connect'] ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$error_msg = isset( $_GET['himoose_msg'] ) ? sanitize_text_field( wp_unslash( $_GET['himoose_msg'] ) ) : __( 'We successfully caught the callback, but the backend did not return a valid API Key. Please try mapping it manually.', 'listen-to-this-article' );
+			?>
+			<div class="notice notice-error is-dismissible">
+				<p><strong><?php esc_html_e( 'Connection Failed:', 'listen-to-this-article' ); ?></strong> <?php echo esc_html( $error_msg ); ?></p>
+			</div>
+			<?php
+		}
+	}
+}
+add_action( 'admin_notices', 'himoose_connect_success_notice' );
+
+/**
  * Initialize settings.
  */
 function himoose_settings_init() {
@@ -89,6 +116,29 @@ function himoose_settings_init() {
 	}
 }
 add_action( 'admin_init', 'himoose_settings_init' );
+
+/**
+ * Enqueue scripts for settings page.
+ *
+ * @param string $hook The current admin page.
+ */
+function himoose_settings_enqueue_scripts( $hook ) {
+	if ( 'settings_page_himoose-settings' !== $hook ) {
+		return;
+	}
+
+	wp_enqueue_script( 'himoose-admin-js', HIMOOSE_PLUGIN_URL . 'admin/assets/admin.js', array( 'jquery' ), HIMOOSE_VERSION, true );
+	wp_localize_script(
+		'himoose-admin-js',
+		'himooseAjax',
+		array(
+			'ajaxurl'            => admin_url( 'admin-ajax.php' ),
+			'quickConnectNonce'  => wp_create_nonce( 'himoose_quick_connect_nonce' ),
+			'appBase'            => himoose_get_app_base(),
+		)
+	);
+}
+add_action( 'admin_enqueue_scripts', 'himoose_settings_enqueue_scripts' );
 
 /**
  * Sanitize checkbox.
@@ -198,16 +248,43 @@ function himoose_field_api_key_callback() {
 	$domain_value = ! empty( $saved_domain ) ? $saved_domain : $detected_domain;
 	
 	$register_url = himoose_get_app_base() . '/register?source=wordpress&domain=' . urlencode( $domain_value );
+	
+	if ( empty( $api_key ) ) {
+		$current_user = wp_get_current_user();
+		$user_email   = $current_user->user_email;
+		?>
+		<div style="background:#f0f0f1; padding: 15px; border-left: 4px solid #764ba2; margin-bottom:20px; max-width: 600px;">
+			<h3 style="margin-top:0;"><?php esc_html_e( '👋🫎 Free Audio Credits', 'listen-to-this-article' ); ?></h3>
+			<p><?php esc_html_e( 'Moose has some free audio generation credits ready for you. Input your email and we\'ll quickly spin up a free account.', 'listen-to-this-article' ); ?></p>
+			<div style="display:flex; gap:10px; align-items:center;">
+				<input type="email" id="himoose-quick-connect-email" value="<?php echo esc_attr( $user_email ); ?>" placeholder="email@example.com" class="regular-text" style="margin:0;" />
+				<button type="button" id="himoose-quick-connect-btn" class="button button-primary">
+					<?php esc_html_e( 'Let\'s go!', 'listen-to-this-article' ); ?>
+				</button>
+			</div>
+			<p style="font-size: 11px; margin-top: 10px; color: #666; line-height: 1.3;"><em><?php echo wp_kses_post( __( 'We do not spam. By continuing, you agree to our <a href="https://himoose.com/terms" target="_blank">terms</a> and <a href="https://himoose.com/privacy-policy" target="_blank">privacy policy</a>.', 'listen-to-this-article' ) ); ?></em></p>
+			<p id="himoose-quick-connect-error" style="color:#d63638; display:none; margin: 10px 0 0 0;"></p>
+		</div>
+		
+		<hr style="max-width: 600px; margin-bottom: 20px;" />
+		<h4 style="margin-bottom: 10px;"><?php esc_html_e( 'Already have an account?', 'listen-to-this-article' ); ?></h4>
+		<p class="description" style="margin-bottom: 10px;"><?php esc_html_e( 'Paste your API key here to connect your existing account.', 'listen-to-this-article' ); ?></p>
+		<?php
+	} else {
+		// Just output normal label if they're updating an existing attached key.
+		?>
+		<h4 style="margin-bottom: 10px; margin-top:0;"><?php esc_html_e( 'API Key', 'listen-to-this-article' ); ?></h4>
+		<?php
+	}
 	?>
 	<input type="password" name="himoose_api_key" value="" placeholder="<?php echo esc_attr( $placeholder ); ?>" class="regular-text" />
 	
 	<?php if ( empty( $api_key ) ) : ?>
 		<p style="margin-top: 10px;">
-			<a href="<?php echo esc_url( $register_url ); ?>" target="_blank" class="button button-primary">
-				<?php esc_html_e( 'Get Your Free Key to Start Creating Audio', 'listen-to-this-article' ); ?>
+			<a href="<?php echo esc_url( $register_url ); ?>" target="_blank" class="button button-secondary">
+				<?php esc_html_e( 'Get an API Key manually', 'listen-to-this-article' ); ?>
 			</a>
 		</p>
-		<p class="description"><?php esc_html_e( 'It\'s easy! Click the button above to create a free Hi, Moose account and get your key.', 'listen-to-this-article' ); ?></p>
 	<?php else : ?>
 		<p class="description"><?php esc_html_e( 'Your API key is saved securely. To update it, enter a new key above.', 'listen-to-this-article' ); ?></p>
 		<p>

@@ -33,7 +33,7 @@ Audio playback, transcripts, and structured data are delivered as a single,
 self-contained embed that requires no manual audio file management.
 
 ## How to use
-1. Install the plugin and add your Hi, Moose API key in WordPress settings.
+1. Install the plugin and click **"Let's Go!"** in the settings to automatically generate and link a free API key (or paste your existing key).
 2. Edit a post or page and find the **Audio Content** meta box.
 3. Click **Load available audio** or **Generate audio**.
 4. If generating new audio, choose either **Basic Customization** or **Advanced Customization** and set the options you want.

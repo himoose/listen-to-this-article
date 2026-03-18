@@ -79,3 +79,17 @@ function himoose_get_app_base() {
 	 */
 	return rtrim( trim( (string) apply_filters( 'himoose_app_base', $base ) ), '/' );
 }
+
+/**
+ * Get or generate the installation ID for the plugin.
+ *
+ * @return string The unique installation ID.
+ */
+function himoose_get_install_id() {
+	$install_id = get_option( 'himoose_install_id' );
+	if ( empty( $install_id ) ) {
+		$install_id = wp_generate_uuid4();
+		update_option( 'himoose_install_id', $install_id );
+	}
+	return $install_id;
+}

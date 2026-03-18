@@ -110,6 +110,7 @@
 					callback( data.previewUrl || data.preview_url || null );
 				},
 				error: function() {
+						if (connectWindow) connectWindow.close();
 					callback( null );
 				}
 			} );
@@ -463,6 +464,7 @@
 					pollStatus();
 				},
 				error: function() {
+						if (connectWindow) connectWindow.close();
 					$( '#himoose-generate-submit' ).prop( 'disabled', false );
 					$( '#himoose-generate-spinner' ).removeClass( 'is-active' ).hide();
 					setInlineError( 'Network error. Please try again.', null );
@@ -585,6 +587,7 @@
 					}
 				},
 				error: function() {
+						if (connectWindow) connectWindow.close();
 					$button.prop( 'disabled', false );
 					$spinner.removeClass( 'is-active' ).hide();
 					$errorContainer.text( 'Network error. Please try again.' ).show();
@@ -696,6 +699,63 @@
 				data: {
 					action: 'himoose_dismiss_review_prompt',
 					nonce: himooseAjax.nonce
+				}
+			} );
+		} );
+
+		// Quick Connect flow
+		$( '#himoose-quick-connect-btn, #himoose-quick-connect-btn-metabox' ).on( 'click', function( e ) {
+			e.preventDefault();
+			var $btn = $( this );
+			var isMetabox = $btn.attr('id') === 'himoose-quick-connect-btn-metabox';
+			var email = isMetabox ? $( '#himoose-quick-connect-email-metabox' ).val().trim() : $( '#himoose-quick-connect-email' ).val().trim();
+			var $error = isMetabox ? $( '#himoose-quick-connect-error-metabox' ) : $( '#himoose-quick-connect-error' );
+
+			$error.hide().text( '' );
+
+			if ( ! email ) {
+				$error.text( 'Please enter a valid email address.' ).show();
+				return;
+			}
+
+			$btn.prop( 'disabled', true ).text( 'Connecting...' );
+
+			// Open window immediately to avoid popup blockers
+			var connectWindow = window.open('about:blank', '_blank');
+
+			$.ajax( {
+				url: himooseAjax.ajaxurl,
+				type: 'POST',
+				dataType: 'json',
+				data: {
+					action: 'himoose_quick_connect',
+					nonce: himooseAjax.quickConnectNonce,
+					email: email
+				},
+				success: function( response ) {
+					if ( response.success && response.data && response.data.connect_token ) {
+						var appBase = himooseAjax.appBase || 'https://app.himoose.com';
+						var token = response.data.connect_token;
+						var targetUrl = appBase + '/wp-connect?token=' + encodeURIComponent( token );
+						
+						// Redirect the pre-opened window
+						connectWindow.location.href = targetUrl;
+						
+						$btn.text( 'Success! Finish in new tab' );
+						setTimeout(function() {
+							$btn.prop( 'disabled', false ).text( 'Let\'s go!' );
+						}, 3000);
+					} else {
+						if (connectWindow) connectWindow.close();
+						var msg = ( response.data && response.data.message ) ? response.data.message : 'Unable to start Quick Connect. Please try our standard setup method.';
+						$error.text( msg ).show();
+						$btn.prop( 'disabled', false ).text( 'Let\'s go!' );
+					}
+				},
+				error: function() {
+					if (connectWindow) connectWindow.close();
+					$error.text( 'Unable to start Quick Connect. Please try our standard setup method.' ).show();
+					$btn.prop( 'disabled', false ).text( 'Let\'s go!' );
 				}
 			} );
 		} );

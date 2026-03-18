@@ -191,15 +191,29 @@ function himoose_render_meta_box( $post ) {
 			</div>
 		<?php endif; ?>
 
-		<?php if ( empty( $api_key ) ) : ?>
-			<p>
-				<?php esc_html_e( 'Please connect to Hi, Moose to generate audio.', 'listen-to-this-article' ); ?>
-			</p>
-			<p>
-				<a href="<?php echo esc_url( admin_url( 'options-general.php?page=himoose-settings' ) ); ?>" class="button button-primary">
-					<?php esc_html_e( 'Go to Settings', 'listen-to-this-article' ); ?>
-				</a>
-			</p>
+		<?php if ( empty( $api_key ) ) : 
+			$current_user = wp_get_current_user();
+			$user_email   = $current_user->user_email;
+		?>
+			<div class="himoose-quick-connect-metabox">
+				<p style="margin-top: 0;"><strong><?php esc_html_e( '👋🫎 Free Audio Credits', 'listen-to-this-article' ); ?></strong></p>
+				<p><?php esc_html_e( 'Moose has some free audio generation credits ready for you. Input your email and we\'ll quickly spin up a free account.', 'listen-to-this-article' ); ?></p>
+				<div style="margin-bottom: 8px;">
+					<input type="email" id="himoose-quick-connect-email-metabox" value="<?php echo esc_attr( $user_email ); ?>" placeholder="email@example.com" style="width: 100%; margin-bottom: 8px;" />
+					<button type="button" id="himoose-quick-connect-btn-metabox" class="button button-primary" style="width: 100%;">
+						<?php esc_html_e( 'Let\'s go!', 'listen-to-this-article' ); ?>
+					</button>
+				</div>
+				<p style="font-size: 11px; margin-top: 0; color: #666; line-height: 1.3;"><em><?php echo wp_kses_post( __( 'We do not spam. By continuing, you agree to our <a href="https://himoose.com/terms" target="_blank">terms</a> and <a href="https://himoose.com/privacy-policy" target="_blank">privacy policy</a>.', 'listen-to-this-article' ) ); ?></em></p>
+				<p id="himoose-quick-connect-error-metabox" style="color:#d63638; display:none; margin: 10px 0 0 0;"></p>
+				
+				<hr style="margin: 15px 0;" />
+				<p style="margin-bottom: 0;">
+					<a href="<?php echo esc_url( admin_url( 'options-general.php?page=himoose-settings' ) ); ?>">
+						<?php esc_html_e( 'Already have an API key?', 'listen-to-this-article' ); ?> &rarr;
+					</a>
+				</p>
+			</div>
 		<?php else : ?>
 				<button type="button" id="himoose-fetch-podcasts" class="button button-secondary" style="<?php echo $has_job ? 'display:none;' : ''; ?>">
 					<?php esc_html_e( 'Load available audio', 'listen-to-this-article' ); ?>
@@ -522,11 +536,13 @@ function himoose_enqueue_admin_scripts( $hook ) {
 		'himoose-admin-js',
 		'himooseAjax',
 		array(
-			'ajaxurl'       => admin_url( 'admin-ajax.php' ),
-			'nonce'         => wp_create_nonce( 'himoose_ajax_nonce' ),
-			'sampleBaseUrl' => 'https://audio.himoose.com/listen/himoose.com/voice-samples/',
-			'sampleExt'     => '.wav',
-			'postType'      => $post_type,
+			'ajaxurl'           => admin_url( 'admin-ajax.php' ),
+			'nonce'             => wp_create_nonce( 'himoose_ajax_nonce' ),
+			'quickConnectNonce' => wp_create_nonce( 'himoose_quick_connect_nonce' ),
+			'appBase'           => himoose_get_app_base(),
+			'sampleBaseUrl'     => 'https://audio.himoose.com/listen/himoose.com/voice-samples/',
+			'sampleExt'         => '.wav',
+			'postType'          => $post_type,
 		)
 	);
 }

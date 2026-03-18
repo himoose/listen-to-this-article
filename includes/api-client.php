@@ -328,3 +328,173 @@ function himoose_remote_get_podcast_status( $job_id ) {
 
 	return $data;
 }
+
+/**
+ * Initialize Quick Connect.
+ *
+ * @param string $email The user's email address.
+ * @param string $install_id The WP installation ID.
+ * @param string $domain The normalized domain.
+ * @return array|WP_Error Response array or WP_Error on failure.
+ */
+function himoose_remote_init_quick_connect( $email, $install_id, $domain ) {
+$url = himoose_get_api_base() . '/initWordPressConnect';
+
+$state = wp_generate_password( 24, false );
+set_transient( 'himoose_quick_connect_state_' . get_current_user_id(), $state, HOUR_IN_SECONDS );
+$return_url = admin_url( 'options-general.php?page=himoose-settings&himoose_connect=success&state=' . urlencode( $state ) );
+
+$payload = array(
+'email'             => $email,
+'install_id'        => $install_id,
+'normalized_domain' => $domain,
+'return_url'        => $return_url,
+);
+
+$args = array(
+'headers' => array(
+'content-type'         => 'application/json',
+'x-himoose-wp-version' => HIMOOSE_VERSION,
+),
+'timeout' => 20,
+'body'    => wp_json_encode( $payload ),
+);
+
+$response = wp_remote_post( $url, $args );
+if ( is_wp_error( $response ) ) {
+return $response;
+}
+
+$code = wp_remote_retrieve_response_code( $response );
+$body = wp_remote_retrieve_body( $response );
+$data = json_decode( $body, true );
+
+if ( 200 !== $code ) {
+return new WP_Error( 'api_error', __( 'HTTP Error ', 'listen-to-this-article' ) . $code );
+}
+
+if ( json_last_error() !== JSON_ERROR_NONE || ! is_array( $data ) ) {
+return new WP_Error( 'json_error', __( 'Invalid JSON response.', 'listen-to-this-article' ) );
+}
+
+return $data;
+}
+
+/**
+ * AJAX handler for Quick Connect.
+ */
+function himoose_ajax_quick_connect() {
+check_ajax_referer( 'himoose_quick_connect_nonce', 'nonce' );
+
+if ( ! current_user_can( 'manage_options' ) ) {
+wp_send_json_error( array( 'message' => __( 'Permission denied.', 'listen-to-this-article' ) ) );
+}
+
+$email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+if ( empty( $email ) ) {
+wp_send_json_error( array( 'message' => __( 'Invalid email.', 'listen-to-this-article' ) ) );
+}
+
+$install_id = himoose_get_install_id();
+$domain     = himoose_get_domain();
+
+$response = himoose_remote_init_quick_connect( $email, $install_id, $domain );
+
+if ( is_wp_error( $response ) ) {
+wp_send_json_error( array( 'message' => $response->get_error_message() ) );
+}
+
+if ( isset( $response['status'] ) && 'success' === $response['status'] && ! empty( $response['connect_token'] ) ) {
+wp_send_json_success( array( 'connect_token' => $response['connect_token'] ) );
+}
+
+wp_send_json_error( array( 'message' => __( 'Unable to start Quick Connect. Please try our standard setup method.', 'listen-to-this-article' ) ) );
+}
+add_action( 'wp_ajax_himoose_quick_connect', 'himoose_ajax_quick_connect' );
+
+/**
+ * Exchange temporary token for a permanent API key.
+ *
+ * @param string $token The temporary authorization token.
+ * @return array|WP_Error Response array or WP_Error on failure.
+ */
+function himoose_remote_exchange_token( $token ) {
+	$url = himoose_get_api_base() . '/exchangeWordPressToken';
+
+	$payload = array(
+		'token' => $token,
+	);
+
+	$args = array(
+		'headers' => array(
+			'content-type'         => 'application/json',
+			'x-himoose-wp-version' => HIMOOSE_VERSION,
+		),
+		'timeout' => 20,
+		'body'    => wp_json_encode( $payload ),
+	);
+
+	$response = wp_remote_post( $url, $args );
+	if ( is_wp_error( $response ) ) {
+		return $response;
+	}
+
+	$code = wp_remote_retrieve_response_code( $response );
+	$body = wp_remote_retrieve_body( $response );
+	$data = json_decode( $body, true );
+
+	if ( 200 !== $code ) {
+		$error_message = isset( $data['message'] ) ? $data['message'] : __( 'HTTP Error ', 'listen-to-this-article' ) . $code;
+		return new WP_Error( 'api_error', $error_message );
+	}
+
+	if ( json_last_error() !== JSON_ERROR_NONE || ! is_array( $data ) ) {
+		return new WP_Error( 'json_error', __( 'Invalid JSON response.', 'listen-to-this-article' ) );
+	}
+
+	return $data;
+}
+
+/**
+ * Listen for OAuth-style callback token from Quick Connect.
+ */
+function himoose_catch_auth_token_redirect() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( isset( $_GET['himoose_auth_token'] ) && ! empty( $_GET['himoose_auth_token'] ) ) {
+		// Validate CSRF state token
+		$transient_key = 'himoose_quick_connect_state_' . get_current_user_id();
+		$saved_state   = get_transient( $transient_key );
+		
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( empty( $_GET['state'] ) || sanitize_text_field( wp_unslash( $_GET['state'] ) ) !== $saved_state ) {
+			wp_die( esc_html__( 'Invalid security state token. Please try connecting again so we can securely verify the request.', 'listen-to-this-article' ) );
+		}
+		delete_transient( $transient_key );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$token = sanitize_text_field( wp_unslash( $_GET['himoose_auth_token'] ) );
+		$response = himoose_remote_exchange_token( $token );
+		
+		$actual_api_key = '';
+		if ( ! is_wp_error( $response ) && isset( $response['api_key'] ) ) {
+			$actual_api_key = sanitize_text_field( $response['api_key'] );
+		}
+
+		if ( ! empty( $actual_api_key ) ) {
+			update_option( 'himoose_api_key', $actual_api_key );
+			$redirect_url = admin_url( 'options-general.php?page=himoose-settings&himoose_connect=success' );
+		} else {
+			$error_msg = is_wp_error( $response ) ? $response->get_error_message() : __( 'Empty API key returned.', 'listen-to-this-article' );
+			$redirect_url = admin_url( 'options-general.php?page=himoose-settings&himoose_connect=error&himoose_msg=' . urlencode( $error_msg ) );
+		}
+
+		wp_safe_redirect( $redirect_url );
+		exit;
+	}
+}
+add_action( 'admin_init', 'himoose_catch_auth_token_redirect' );
+
