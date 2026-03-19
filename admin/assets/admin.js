@@ -708,6 +708,13 @@
 			e.preventDefault();
 			var $btn = $( this );
 			var isMetabox = $btn.attr('id') === 'himoose-quick-connect-btn-metabox';
+			var $wrap = isMetabox ? $( '#himoose-quick-connect-email-wrap-metabox' ) : $( '#himoose-quick-connect-email-wrap' );
+			
+			if ( $wrap.length && ! $wrap.is(':visible') ) {
+				$wrap.show();
+				return;
+			}
+			
 			var email = isMetabox ? $( '#himoose-quick-connect-email-metabox' ).val().trim() : $( '#himoose-quick-connect-email' ).val().trim();
 			var $error = isMetabox ? $( '#himoose-quick-connect-error-metabox' ) : $( '#himoose-quick-connect-error' );
 
@@ -743,19 +750,19 @@
 						
 						$btn.text( 'Success! Finish in new tab' );
 						setTimeout(function() {
-							$btn.prop( 'disabled', false ).text( 'Let\'s go!' );
+							$btn.prop( 'disabled', false ).text( 'Connect Account' );
 						}, 3000);
 					} else {
 						if (connectWindow) connectWindow.close();
 						var msg = ( response.data && response.data.message ) ? response.data.message : 'Unable to start Quick Connect. Please try our standard setup method.';
 						$error.text( msg ).show();
-						$btn.prop( 'disabled', false ).text( 'Let\'s go!' );
+						$btn.prop( 'disabled', false ).text( 'Connect Account' );
 					}
 				},
 				error: function() {
 					if (connectWindow) connectWindow.close();
 					$error.text( 'Unable to start Quick Connect. Please try our standard setup method.' ).show();
-					$btn.prop( 'disabled', false ).text( 'Let\'s go!' );
+					$btn.prop( 'disabled', false ).text( 'Connect Account' );
 				}
 			} );
 		} );

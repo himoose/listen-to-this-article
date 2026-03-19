@@ -196,15 +196,19 @@ function himoose_render_meta_box( $post ) {
 			$user_email   = $current_user->user_email;
 		?>
 			<div class="himoose-quick-connect-metabox">
-				<p style="margin-top: 0;"><strong><?php esc_html_e( '👋🫎 Free Audio Credits', 'listen-to-this-article' ); ?></strong></p>
-				<p><?php esc_html_e( 'Moose has some free audio generation credits ready for you. Input your email and we\'ll quickly spin up a free account.', 'listen-to-this-article' ); ?></p>
-				<div style="margin-bottom: 8px;">
+				<p style="margin-top: 0;"><strong><?php esc_html_e( 'Complete Setup', 'listen-to-this-article' ); ?></strong></p>
+				<p><?php esc_html_e( 'Connect your site to Hi, Moose to start generating and embedding audio.', 'listen-to-this-article' ); ?></p>
+				
+				<div id="himoose-quick-connect-email-wrap-metabox" style="display:none; margin-bottom: 8px;">
+					<p style="margin-top:0; margin-bottom: 8px; font-weight: 500; font-size: 13px;"><?php esc_html_e( 'Confirm your email to sync your site:', 'listen-to-this-article' ); ?></p>
 					<input type="email" id="himoose-quick-connect-email-metabox" value="<?php echo esc_attr( $user_email ); ?>" placeholder="email@example.com" style="width: 100%; margin-bottom: 8px;" />
-					<button type="button" id="himoose-quick-connect-btn-metabox" class="button button-primary" style="width: 100%;">
-						<?php esc_html_e( 'Let\'s go!', 'listen-to-this-article' ); ?>
-					</button>
+					<p style="font-size: 11px; margin-top: 0; margin-bottom: 8px; color: #666; line-height: 1.3;"><em><?php echo wp_kses_post( __( 'We do not spam. By continuing, you agree to our <a href="https://himoose.com/terms" target="_blank">terms</a> and <a href="https://himoose.com/privacy-policy" target="_blank">privacy policy</a>.', 'listen-to-this-article' ) ); ?></em></p>
 				</div>
-				<p style="font-size: 11px; margin-top: 0; color: #666; line-height: 1.3;"><em><?php echo wp_kses_post( __( 'We do not spam. By continuing, you agree to our <a href="https://himoose.com/terms" target="_blank">terms</a> and <a href="https://himoose.com/privacy-policy" target="_blank">privacy policy</a>.', 'listen-to-this-article' ) ); ?></em></p>
+                
+				<button type="button" id="himoose-quick-connect-btn-metabox" class="button button-primary" style="width: 100%;">
+					<?php esc_html_e( 'Connect Site', 'listen-to-this-article' ); ?>
+				</button>
+
 				<p id="himoose-quick-connect-error-metabox" style="color:#d63638; display:none; margin: 10px 0 0 0;"></p>
 				
 				<hr style="margin: 15px 0;" />

@@ -254,19 +254,22 @@ function himoose_field_api_key_callback() {
 		$user_email   = $current_user->user_email;
 		?>
 		<div style="background:#f0f0f1; padding: 15px; border-left: 4px solid #764ba2; margin-bottom:20px; max-width: 600px;">
-			<h3 style="margin-top:0;"><?php esc_html_e( '👋🫎 Free Audio Credits', 'listen-to-this-article' ); ?></h3>
-			<p><?php esc_html_e( 'Moose has some free audio generation credits ready for you. Input your email and we\'ll quickly spin up a free account.', 'listen-to-this-article' ); ?></p>
-			<div style="display:flex; gap:10px; align-items:center;">
-				<input type="email" id="himoose-quick-connect-email" value="<?php echo esc_attr( $user_email ); ?>" placeholder="email@example.com" class="regular-text" style="margin:0;" />
-				<button type="button" id="himoose-quick-connect-btn" class="button button-primary">
-					<?php esc_html_e( 'Let\'s go!', 'listen-to-this-article' ); ?>
-				</button>
+			<h3 style="margin-top:0;"><?php esc_html_e( 'Complete Plugin Setup', 'listen-to-this-article' ); ?></h3>
+			<p style="margin-bottom: 15px;"><?php esc_html_e( 'Connect your site to Hi, Moose to start generating and embedding audio.', 'listen-to-this-article' ); ?></p>
+			
+			<div id="himoose-quick-connect-email-wrap" style="display:none; margin-bottom:15px;">
+				<p style="margin-top:0; margin-bottom: 8px; font-weight: 500; font-size: 13px;"><?php esc_html_e( 'Confirm your email to sync your site:', 'listen-to-this-article' ); ?></p>
+				<input type="email" id="himoose-quick-connect-email" value="<?php echo esc_attr( $user_email ); ?>" placeholder="email@example.com" class="regular-text" style="margin:0; display:block; width:100%; max-width: 350px;" />
+				<p style="font-size: 11px; margin-top: 5px; margin-bottom: 0; color: #666; line-height: 1.3;"><em><?php echo wp_kses_post( __( 'We do not spam. By continuing, you agree to our <a href="https://himoose.com/terms" target="_blank">terms</a> and <a href="https://himoose.com/privacy-policy" target="_blank">privacy policy</a>.', 'listen-to-this-article' ) ); ?></em></p>
 			</div>
-			<p style="font-size: 11px; margin-top: 10px; color: #666; line-height: 1.3;"><em><?php echo wp_kses_post( __( 'We do not spam. By continuing, you agree to our <a href="https://himoose.com/terms" target="_blank">terms</a> and <a href="https://himoose.com/privacy-policy" target="_blank">privacy policy</a>.', 'listen-to-this-article' ) ); ?></em></p>
+
+			<button type="button" id="himoose-quick-connect-btn" class="button button-primary">
+				<?php esc_html_e( 'Connect Site', 'listen-to-this-article' ); ?>
+			</button>
+			
 			<p id="himoose-quick-connect-error" style="color:#d63638; display:none; margin: 10px 0 0 0;"></p>
 		</div>
-		
-		<hr style="max-width: 600px; margin-bottom: 20px;" />
+
 		<h4 style="margin-bottom: 10px;"><?php esc_html_e( 'Already have an account?', 'listen-to-this-article' ); ?></h4>
 		<p class="description" style="margin-bottom: 10px;"><?php esc_html_e( 'Paste your API key here to connect your existing account.', 'listen-to-this-article' ); ?></p>
 		<?php

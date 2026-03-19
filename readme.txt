@@ -3,7 +3,7 @@ Contributors: himoose
 Tags: text to speech, audio player, read aloud, podcast, accessibility
 Requires at least: 6.0
 Tested up to: 6.9
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -149,6 +149,9 @@ Yes. Hi, Moose includes built-in analytics showing plays, resumes, completion ra
 
 
 == Changelog ==
+
+= 1.3.1 =
+*   Refined the setup UI to streamline the Quick Connect flow.
 
 = 1.3.0 =
 *   Introducing "Quick Connect" – you can now generate a free API key and connect your Hi, Moose account automatically with one click. No more copying and pasting long API keys!
