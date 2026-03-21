@@ -1,32 +1,32 @@
-=== Listen to This Article as a Podcast – AI Text to Speech Audio Player ===
+=== Podcast-Style Text to Speech - Hi, Moose ===
 Contributors: himoose
-Tags: text to speech, audio player, read aloud, podcast, accessibility
+Tags: text to speech, audio player, read aloud, text to audio, accessibility
 Requires at least: 6.0
 Tested up to: 6.9
-Stable tag: 1.3.1
+Stable tag: 1.3.2
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Text to speech audio player for WordPress. Add a “read aloud” or “listen to this article” podcast-style player with transcripts and structured data.
+Text to speech audio player for WordPress with podcast-style audio, visible transcripts, structured data, and read aloud playback.
 
 == Description ==
 
-**Listen to This Article as a Podcast** is a text to speech audio player plugin for WordPress, powered by the [Hi, Moose text-to-podcast generator](https://himoose.com/listen-to-this-article). It lets you add a “read aloud” or “listen to this article” audio experience to your posts using natural-sounding AI narration.
+**Listen to This Article as a Podcast** is a text to speech audio player plugin for WordPress, powered by the [Hi, Moose text-to-podcast generator](https://himoose.com/listen-to-this-article). It turns posts into natural-sounding, podcast-style audio and adds a visible transcript to the page, so readers can listen and read along while search engines and AI systems can better understand the content.
 
 = Text to Speech & Read Aloud Audio for WordPress =
-It adds an audio version of your posts—similar to a “listen to this article” or “read aloud” button—but powered by high-quality, natural AI voices.  
+It adds a text to speech audio version of your posts, similar to a read aloud or listen to this article feature, but with a more natural, podcast-style presentation instead of a flat word-for-word reading.  
 
-Perfect for sites that want to offer **text-to-speech**, **podcast-style audio**, **read aloud**, or **article-to-audio** experiences without managing audio files manually. Unlike other text-to-speech plugins, you don't need to bring your own OpenAI, Google, or other third-party AI keys—everything is handled through the Hi, Moose AEO platform.
+Perfect for sites that want to offer **text to speech**, **text to audio**, **podcast-style audio**, **read aloud**, or **listen to this article** experiences without managing audio files manually. Unlike many basic text to speech tools, Hi, Moose is designed to create a more engaging, human-like listening experience, and it does not require you to bring your own OpenAI, Google, or other third-party AI keys.
 
-By offering an audio version of your content, you can:
-* **Increase Engagement:** Users stay longer when they can listen instead of read.
-* **Improve Accessibility:** Great for readers with visual impairments or who prefer audio.
-* **Boost SEO & AEO:** The plugin embeds full transcripts and Schema.org JSON-LD data. The conversational nature of the transcript is optimized for Answer Engine Optimization (AEO) and Generative Engine Optimization (GEO), helping your content perform better in AI-powered search results like ChatGPT, Gemini, and Perplexity.
+By offering a text to speech version of your content, you can:
+* **Increase Engagement:** Give readers a more natural way to consume long posts with podcast-style audio instead of a simple read-aloud playback.
+* **Improve Accessibility:** Help visitors who prefer listening, reading along with a transcript, or using both together.
+* **Support SEO, AEO, and GEO:** The plugin embeds a visible transcript and Schema.org JSON-LD data, giving search engines and AI systems more on-page content to understand and reference.
 
-This plugin automatically detects your domain and lets you manage audio right inside the WordPress editor: load available episodes for your domain or generate new audio for the post/page.
+This plugin automatically detects your domain and lets you manage text to speech audio right inside the WordPress editor: load available episodes for your domain or generate a new podcast-style audio version for the current post or page.
 
-On the Hi, Moose platform, you can customize each podcast-style audio version before embedding it—choose narration voices, adjust pacing and length, provide optional focus instructions, and fine-tune the player’s colors. Hi, Moose also includes built-in analytics showing listeners, plays, resumes, and completion rates. Once generated, the final audio and transcript are embedded on your WordPress site through a clean, lightweight player.
+On the Hi, Moose platform, you can customize each podcast-style text to speech version before embedding it. Choose narration voices, adjust pacing and length, provide optional focus instructions, and fine-tune the player’s colors. Hi, Moose also includes built-in analytics showing listeners, plays, resumes, and completion rates. Once generated, the final audio and visible transcript are embedded on your WordPress site through a clean, lightweight player.
 
 = Useful Links =
 
@@ -49,20 +49,20 @@ On the Hi, Moose platform, you can customize each podcast-style audio version be
 
 = Features =
 
-* **“Listen to This Article” Button:** Add an instant audio version of your post.
-* **AI Text-to-Speech:** High-quality AI voices generate natural, podcast-style audio.
+* **Text to Speech Audio Player:** Add a built-in audio player to your posts for read aloud and listen to this article use cases.
+* **Podcast-Style AI Narration:** Generate natural-sounding, human-like audio designed to be more engaging than a simple word-for-word reading.
 * **Voice Selection:** Choose separate host and guest voices for each audio version.
 * **Length & Prompt Controls:** Set audio length, add basic instructions, and tailor the generated conversation to your content.
 * **Advanced Audio Customization:** Add host direction, guest direction, scene, style, pace, accent, and extra context for more control over delivery.
 * **Player Title & Branding:** Customize the player title and choose primary and secondary colors to match your brand.
-* **SEO-Friendly Transcript:** Embeds a full, indexable transcript for improved accessibility, SEO, and AEO/GEO/AI search visibility.
-* **Natural-Sounding Voices:** No robotic monotone or awkward pauses—voices are designed to sound human, conversational, and clear.
+* **Visible On-Page Transcript:** Embeds a full, indexable transcript that readers can actually see and use, not just hidden metadata.
+* **Natural-Sounding Voices:** Voices are designed to sound human, conversational, and clear rather than robotic or flat.
 * **Hosted Audio Delivery:** No hosting required. Audio and transcripts are delivered via a global CDN.
 * **Multilingual Text to Speech:** Supports 24 languages with automatic detection or manual selection.
 * **Analytics:** Track plays, resumes, completion rate, total listen time, and engagement metrics.
 * **In-Editor Audio Workflow:** Load available audio or generate new audio directly from the post editor sidebar in both Classic and Block Editor.
 * **Preview Before Publishing:** Preview the selected audio in the editor, then click Update/Publish to save.
-* **Schema.org JSON-LD:** Automatically includes PodcastEpisode structured data.
+* **SEO-Friendly Structured Data:** Automatically includes Schema.org JSON-LD to support search visibility and content understanding.
 * **Flexible Placement:** Auto-insert at the top of a post or use the `[himoose_podcast]` shortcode.
 * **Lightweight Player:** Responsive and designed to load quickly.
 * **Accessibility Friendly:** Ideal for sites offering read-aloud or audio alternatives.
@@ -75,7 +75,7 @@ This plugin relies on the [Hi, Moose](https://himoose.com) platform to generate 
 *The audio player and transcript are delivered as an embed directly from the Hi, Moose platform, similar to how YouTube or Vimeo embeds work.*
 
 * **Service:** Hi, Moose (Listen to this Article AI Podcast Generator)
-* **Data Sent**: To retrieve existing episodes, the plugin sends your site's domain name to our API. If you choose to generate audio from within WordPress, the plugin sends the post title and post content to Hi, Moose to generate the audio. No WordPress user account data is sent.
+* **Data Sent**: To retrieve existing episodes, the plugin sends your site's domain name to our API. If you choose to generate text to speech audio from within WordPress, the plugin sends the post title and post content to Hi, Moose to generate the podcast-style audio and transcript. No WordPress user account data is sent.
 * **Analytics:** The embedded player tracks plays, pauses, and transcript interactions. IP addresses are hashed before storage. No personally identifiable information (PII) is collected.
 * **Pricing & Free Tier:** Hi, Moose includes a free tier for WordPress users with 3 free podcast episodes and up to 10,000 monthly listens. Optional paid plans are available if you need more capacity, but this plugin will not show ads, nag banners, or restrict the WordPress editing experience.
 * **Terms of Use:** [https://himoose.com/terms](https://himoose.com/terms)
@@ -85,7 +85,7 @@ This plugin relies on the [Hi, Moose](https://himoose.com) platform to generate 
 
 1.  Upload the plugin files to the `/wp-content/plugins/listen-to-this-article` directory, or install the plugin through the WordPress plugins screen.
 2.  Activate the plugin through the 'Plugins' screen in WordPress.
-3.  Go to **Settings → Hi, Moose Podcast Generator** and enter your API Key from Hi, Moose. 
+3.  Go to **Settings → Hi, Moose Audio Generator** and connect your site with Quick Connect or enter your API key manually.
 
 == How to Use ==
 
@@ -106,6 +106,7 @@ Yes. This plugin adds a text-to-speech (“read aloud”) audio player to WordPr
 
 = Where do I get an API Key? =
 You can generate an API key from your [Hi, Moose dashboard](https://app.himoose.com/register?source=wordpress). Quick and easy; it takes just a minute to get your free API key.
+You can also connect your site with Quick Connect during setup if you prefer not to copy and paste an API key manually.
 
 = Can I define the API key in wp-config.php? =
 Yes! For added security, you can define your API key in your `wp-config.php` file. Add the following line:
@@ -119,7 +120,7 @@ Yes, the plugin adds a meta box to the document sidebar (under the "Post" tab) i
 Yes! Use the shortcode `[himoose_podcast]` anywhere in your post content and this will override the top placement setting.
 
 = Do I need an OpenAI, Google, or other AI API key? =
-No. Unlike other text-to-speech plugins, you don't need to provide your own AI keys. All audio generation is handled through the Hi, Moose platform—just enter your Hi, Moose API key and you're ready to go.
+No. You do not need to provide your own OpenAI, Google, or other AI API keys. Audio generation is handled through the Hi, Moose platform, and you can connect with Quick Connect or use a Hi, Moose API key.
 
 = Is this plugin free? =
 Yes, Hi, Moose includes a free tier for WordPress users with 3 free podcast episodes. Optional paid plans are available if you need more capacity.
@@ -128,13 +129,13 @@ Yes, Hi, Moose includes a free tier for WordPress users with 3 free podcast epis
 The plugin supports 24 languages with automatic language detection or manual selection. This includes English, Spanish, French, German, Portuguese, and many more.
 
 = Does this help with SEO? =
-Yes. The plugin embeds a full, indexable transcript and Schema.org JSON-LD structured data (PodcastEpisode) on each post. The conversational transcript format is also optimized for Answer Engine Optimization (AEO) and AI-powered search engines like ChatGPT, Gemini, and Perplexity.
+Yes. The plugin embeds a full, visible, indexable transcript and Schema.org JSON-LD structured data (PodcastEpisode) on each post. Because Hi, Moose creates a podcast-style adaptation instead of a simple word-for-word playback, the transcript can add useful on-page content for SEO, AEO, and AI-powered search systems like ChatGPT, Gemini, and Perplexity.
 
 = Do I need to host the audio files myself? =
 No. All audio and transcripts are hosted and delivered through a global CDN by Hi, Moose. There's nothing to upload, store, or manage on your WordPress server.
 
 = Does the audio sound robotic? =
-Not at all. Hi, Moose uses high-quality AI voices that sound natural, human, and conversational—without the awkward pauses or monotone delivery common in other text-to-speech tools.
+Hi, Moose uses high-quality AI voices designed to sound natural, human-like, and conversational, with a more engaging podcast-style delivery than a basic robotic read aloud.
 
 = Can I track how many people are listening? =
 Yes. Hi, Moose includes built-in analytics showing plays, resumes, completion rates, total listen time, and other engagement metrics for each episode.
@@ -149,6 +150,10 @@ Yes. Hi, Moose includes built-in analytics showing plays, resumes, completion ra
 
 
 == Changelog ==
+
+= 1.3.2 =
+*   Added a one-time onboarding flow after activation with Quick Connect and manual API key fallback.
+*   Refined the onboarding page copy and post-connect state.
 
 = 1.3.1 =
 *   Refined the setup UI to streamline the Quick Connect flow.

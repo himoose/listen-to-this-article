@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function himoose_connect_success_notice() {
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( isset( $_GET['page'] ) && 'himoose-settings' === $_GET['page'] && isset( $_GET['himoose_connect'] ) ) {
+	if ( isset( $_GET['page'] ) && in_array( $_GET['page'], array( 'himoose-settings', 'himoose-onboarding' ), true ) && isset( $_GET['himoose_connect'] ) ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( 'success' === $_GET['himoose_connect'] ) {
 			?>
@@ -123,10 +123,11 @@ add_action( 'admin_init', 'himoose_settings_init' );
  * @param string $hook The current admin page.
  */
 function himoose_settings_enqueue_scripts( $hook ) {
-	if ( 'settings_page_himoose-settings' !== $hook ) {
+	if ( ! in_array( $hook, array( 'settings_page_himoose-settings', 'settings_page_himoose-onboarding' ), true ) ) {
 		return;
 	}
 
+	wp_enqueue_style( 'himoose-admin-css', HIMOOSE_PLUGIN_URL . 'admin/assets/admin.css', array(), HIMOOSE_VERSION );
 	wp_enqueue_script( 'himoose-admin-js', HIMOOSE_PLUGIN_URL . 'admin/assets/admin.js', array( 'jquery' ), HIMOOSE_VERSION, true );
 	wp_localize_script(
 		'himoose-admin-js',
@@ -135,10 +136,28 @@ function himoose_settings_enqueue_scripts( $hook ) {
 			'ajaxurl'            => admin_url( 'admin-ajax.php' ),
 			'quickConnectNonce'  => wp_create_nonce( 'himoose_quick_connect_nonce' ),
 			'appBase'            => himoose_get_app_base(),
+			'settingsUrl'        => admin_url( 'options-general.php?page=himoose-settings' ),
 		)
 	);
 }
 add_action( 'admin_enqueue_scripts', 'himoose_settings_enqueue_scripts' );
+
+/**
+ * Determine whether the current save request came from the onboarding API key form.
+ *
+ * @return bool True when saving from the onboarding manual API key form.
+ */
+function himoose_is_onboarding_manual_save() {
+	if ( empty( $_POST['himoose_onboarding_manual_save'] ) ) {
+		return false;
+	}
+
+	if ( empty( $_POST['_wpnonce'] ) ) {
+		return false;
+	}
+
+	return wp_verify_nonce( sanitize_key( $_POST['_wpnonce'] ), 'himoose_options_group-options' );
+}
 
 /**
  * Sanitize checkbox.
@@ -147,6 +166,11 @@ add_action( 'admin_enqueue_scripts', 'himoose_settings_enqueue_scripts' );
  * @return string '1' or ''.
  */
 function himoose_sanitize_checkbox( $input ) {
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Presence check only; nonce is validated inside himoose_is_onboarding_manual_save().
+	if ( himoose_is_onboarding_manual_save() && ! isset( $_POST['himoose_auto_insert'] ) ) {
+		return get_option( 'himoose_auto_insert' );
+	}
+
 	return ( '1' === $input ) ? '1' : '';
 }
 
@@ -181,6 +205,11 @@ function himoose_sanitize_api_key( $new_value ) {
  * @return string The sanitized domain.
  */
 function himoose_sanitize_domain( $input ) {
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Presence check only; nonce is validated inside himoose_is_onboarding_manual_save().
+	if ( himoose_is_onboarding_manual_save() && ! isset( $_POST['himoose_domain'] ) ) {
+		return get_option( 'himoose_domain' );
+	}
+
 	// Remove protocol and trailing slashes.
 	$domain = trim( $input );
 	$domain = preg_replace( '#^https?://#', '', $domain );

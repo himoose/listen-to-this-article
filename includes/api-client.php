@@ -335,49 +335,61 @@ function himoose_remote_get_podcast_status( $job_id ) {
  * @param string $email The user's email address.
  * @param string $install_id The WP installation ID.
  * @param string $domain The normalized domain.
+ * @param string $redirect_page The admin page to return to after connection.
  * @return array|WP_Error Response array or WP_Error on failure.
  */
-function himoose_remote_init_quick_connect( $email, $install_id, $domain ) {
-$url = himoose_get_api_base() . '/initWordPressConnect';
+function himoose_remote_init_quick_connect( $email, $install_id, $domain, $redirect_page = 'himoose-settings' ) {
+	$url = himoose_get_api_base() . '/initWordPressConnect';
 
-$state = wp_generate_password( 24, false );
-set_transient( 'himoose_quick_connect_state_' . get_current_user_id(), $state, HOUR_IN_SECONDS );
-$return_url = admin_url( 'options-general.php?page=himoose-settings&himoose_connect=success&state=' . urlencode( $state ) );
+	if ( ! in_array( $redirect_page, array( 'himoose-settings', 'himoose-onboarding' ), true ) ) {
+		$redirect_page = 'himoose-settings';
+	}
 
-$payload = array(
-'email'             => $email,
-'install_id'        => $install_id,
-'normalized_domain' => $domain,
-'return_url'        => $return_url,
-);
+	$state = wp_generate_password( 24, false );
+	set_transient(
+		'himoose_quick_connect_state_' . get_current_user_id(),
+		array(
+			'state'         => $state,
+			'redirect_page' => $redirect_page,
+		),
+		HOUR_IN_SECONDS
+	);
+	$return_url = admin_url( 'options-general.php?page=' . $redirect_page . '&himoose_connect=success&state=' . urlencode( $state ) );
 
-$args = array(
-'headers' => array(
-'content-type'         => 'application/json',
-'x-himoose-wp-version' => HIMOOSE_VERSION,
-),
-'timeout' => 20,
-'body'    => wp_json_encode( $payload ),
-);
+	$payload = array(
+		'email'             => $email,
+		'install_id'        => $install_id,
+		'normalized_domain' => $domain,
+		'return_url'        => $return_url,
+	);
 
-$response = wp_remote_post( $url, $args );
-if ( is_wp_error( $response ) ) {
-return $response;
-}
+	$args = array(
+		'headers' => array(
+			'content-type'         => 'application/json',
+			'x-himoose-wp-version' => HIMOOSE_VERSION,
+		),
+		'timeout' => 20,
+		'body'    => wp_json_encode( $payload ),
+	);
 
-$code = wp_remote_retrieve_response_code( $response );
-$body = wp_remote_retrieve_body( $response );
-$data = json_decode( $body, true );
+	$response = wp_remote_post( $url, $args );
+	if ( is_wp_error( $response ) ) {
+		return $response;
+	}
 
-if ( 200 !== $code ) {
-return new WP_Error( 'api_error', __( 'HTTP Error ', 'listen-to-this-article' ) . $code );
-}
+	$code = wp_remote_retrieve_response_code( $response );
+	$body = wp_remote_retrieve_body( $response );
+	$data = json_decode( $body, true );
 
-if ( json_last_error() !== JSON_ERROR_NONE || ! is_array( $data ) ) {
-return new WP_Error( 'json_error', __( 'Invalid JSON response.', 'listen-to-this-article' ) );
-}
+	if ( 200 !== $code ) {
+		return new WP_Error( 'api_error', __( 'HTTP Error ', 'listen-to-this-article' ) . $code );
+	}
 
-return $data;
+	if ( json_last_error() !== JSON_ERROR_NONE || ! is_array( $data ) ) {
+		return new WP_Error( 'json_error', __( 'Invalid JSON response.', 'listen-to-this-article' ) );
+	}
+
+	return $data;
 }
 
 /**
@@ -397,8 +409,9 @@ wp_send_json_error( array( 'message' => __( 'Invalid email.', 'listen-to-this-ar
 
 $install_id = himoose_get_install_id();
 $domain     = himoose_get_domain();
+	$redirect_page = isset( $_POST['redirect_page'] ) ? sanitize_key( wp_unslash( $_POST['redirect_page'] ) ) : 'himoose-settings';
 
-$response = himoose_remote_init_quick_connect( $email, $install_id, $domain );
+	$response = himoose_remote_init_quick_connect( $email, $install_id, $domain, $redirect_page );
 
 if ( is_wp_error( $response ) ) {
 wp_send_json_error( array( 'message' => $response->get_error_message() ) );
@@ -467,7 +480,13 @@ function himoose_catch_auth_token_redirect() {
 	if ( isset( $_GET['himoose_auth_token'] ) && ! empty( $_GET['himoose_auth_token'] ) ) {
 		// Validate CSRF state token
 		$transient_key = 'himoose_quick_connect_state_' . get_current_user_id();
-		$saved_state   = get_transient( $transient_key );
+		$transient_data = get_transient( $transient_key );
+		$saved_state    = is_array( $transient_data ) && isset( $transient_data['state'] ) ? $transient_data['state'] : $transient_data;
+		$redirect_page  = is_array( $transient_data ) && isset( $transient_data['redirect_page'] ) ? $transient_data['redirect_page'] : 'himoose-settings';
+
+		if ( ! in_array( $redirect_page, array( 'himoose-settings', 'himoose-onboarding' ), true ) ) {
+			$redirect_page = 'himoose-settings';
+		}
 		
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( empty( $_GET['state'] ) || sanitize_text_field( wp_unslash( $_GET['state'] ) ) !== $saved_state ) {
@@ -486,10 +505,10 @@ function himoose_catch_auth_token_redirect() {
 
 		if ( ! empty( $actual_api_key ) ) {
 			update_option( 'himoose_api_key', $actual_api_key );
-			$redirect_url = admin_url( 'options-general.php?page=himoose-settings&himoose_connect=success' );
+			$redirect_url = admin_url( 'options-general.php?page=' . $redirect_page . '&himoose_connect=success' );
 		} else {
 			$error_msg = is_wp_error( $response ) ? $response->get_error_message() : __( 'Empty API key returned.', 'listen-to-this-article' );
-			$redirect_url = admin_url( 'options-general.php?page=himoose-settings&himoose_connect=error&himoose_msg=' . urlencode( $error_msg ) );
+			$redirect_url = admin_url( 'options-general.php?page=' . $redirect_page . '&himoose_connect=error&himoose_msg=' . urlencode( $error_msg ) );
 		}
 
 		wp_safe_redirect( $redirect_url );

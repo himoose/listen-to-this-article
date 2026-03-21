@@ -704,19 +704,32 @@
 		} );
 
 		// Quick Connect flow
-		$( '#himoose-quick-connect-btn, #himoose-quick-connect-btn-metabox' ).on( 'click', function( e ) {
+		$( '#himoose-quick-connect-btn, #himoose-quick-connect-btn-metabox, #himoose-quick-connect-btn-onboarding' ).on( 'click', function( e ) {
 			e.preventDefault();
 			var $btn = $( this );
-			var isMetabox = $btn.attr('id') === 'himoose-quick-connect-btn-metabox';
-			var $wrap = isMetabox ? $( '#himoose-quick-connect-email-wrap-metabox' ) : $( '#himoose-quick-connect-email-wrap' );
+			var buttonId = $btn.attr( 'id' );
+			var isMetabox = buttonId === 'himoose-quick-connect-btn-metabox';
+			var isOnboarding = buttonId === 'himoose-quick-connect-btn-onboarding';
+			var $wrap = isMetabox ? $( '#himoose-quick-connect-email-wrap-metabox' ) : ( isOnboarding ? $( '#himoose-quick-connect-email-wrap-onboarding' ) : $( '#himoose-quick-connect-email-wrap' ) );
+			var $email = isMetabox ? $( '#himoose-quick-connect-email-metabox' ) : ( isOnboarding ? $( '#himoose-quick-connect-email-onboarding' ) : $( '#himoose-quick-connect-email' ) );
+			var $error = isMetabox ? $( '#himoose-quick-connect-error-metabox' ) : ( isOnboarding ? $( '#himoose-quick-connect-error-onboarding' ) : $( '#himoose-quick-connect-error' ) );
+			var redirectPage = isOnboarding ? 'himoose-onboarding' : 'himoose-settings';
+			var idleLabel = $btn.data( 'idle-label' ) || $btn.data( 'original-label' ) || $.trim( $btn.text() );
+			var loadingLabel = $btn.data( 'loading-label' ) || 'Connecting...';
+			var successLabel = $btn.data( 'success-label' ) || 'Success! Finish in new tab';
+
+			$btn.data( 'original-label', idleLabel );
 			
 			if ( $wrap.length && ! $wrap.is(':visible') ) {
+				if ( typeof $wrap.prop === 'function' ) {
+					$wrap.prop( 'hidden', false );
+				}
 				$wrap.show();
+				$email.trigger( 'focus' );
 				return;
 			}
 			
-			var email = isMetabox ? $( '#himoose-quick-connect-email-metabox' ).val().trim() : $( '#himoose-quick-connect-email' ).val().trim();
-			var $error = isMetabox ? $( '#himoose-quick-connect-error-metabox' ) : $( '#himoose-quick-connect-error' );
+			var email = $.trim( $email.val() || '' );
 
 			$error.hide().text( '' );
 
@@ -725,7 +738,7 @@
 				return;
 			}
 
-			$btn.prop( 'disabled', true ).text( 'Connecting...' );
+			$btn.prop( 'disabled', true ).text( loadingLabel );
 
 			// Open window immediately to avoid popup blockers
 			var connectWindow = window.open('about:blank', '_blank');
@@ -737,7 +750,8 @@
 				data: {
 					action: 'himoose_quick_connect',
 					nonce: himooseAjax.quickConnectNonce,
-					email: email
+					email: email,
+					redirect_page: redirectPage
 				},
 				success: function( response ) {
 					if ( response.success && response.data && response.data.connect_token ) {
@@ -748,21 +762,21 @@
 						// Redirect the pre-opened window
 						connectWindow.location.href = targetUrl;
 						
-						$btn.text( 'Success! Finish in new tab' );
+						$btn.text( successLabel );
 						setTimeout(function() {
-							$btn.prop( 'disabled', false ).text( 'Connect Account' );
+							$btn.prop( 'disabled', false ).text( idleLabel );
 						}, 3000);
 					} else {
 						if (connectWindow) connectWindow.close();
 						var msg = ( response.data && response.data.message ) ? response.data.message : 'Unable to start Quick Connect. Please try our standard setup method.';
 						$error.text( msg ).show();
-						$btn.prop( 'disabled', false ).text( 'Connect Account' );
+						$btn.prop( 'disabled', false ).text( idleLabel );
 					}
 				},
 				error: function() {
 					if (connectWindow) connectWindow.close();
 					$error.text( 'Unable to start Quick Connect. Please try our standard setup method.' ).show();
-					$btn.prop( 'disabled', false ).text( 'Connect Account' );
+					$btn.prop( 'disabled', false ).text( idleLabel );
 				}
 			} );
 		} );
